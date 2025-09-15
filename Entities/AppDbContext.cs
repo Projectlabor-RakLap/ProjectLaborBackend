@@ -1,0 +1,132 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Emit;
+
+namespace ProjectLaborBackend.Entities
+{
+    public class AppDbContext : DbContext
+    {
+        public DbSet<User> Users { get; set; }
+        public DbSet<Warehouse> Warehouses { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Stock> Stocks { get; set; }
+        public DbSet<Delivery> Deliveries { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            string connectionString = "Server=localhost;Database=RakLapDb;Trusted_Connection=True;TrustServerCertificate=True;";
+            optionsBuilder.UseSqlServer(connectionString);
+        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+            .Property(u => u.Role)
+            .HasConversion<string>();
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Warehouses)
+                .WithMany(w => w.Users);
+
+            modelBuilder.Entity<Warehouse>()
+                .HasMany(w => w.Products)
+                .WithMany(p => p.Warehouses);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Stock)
+                .WithOne(s => s.Product)
+                .HasForeignKey<Stock>(s => s.ProductId);
+
+            modelBuilder.Entity<Product>()
+                .HasMany(p => p.Deliveries)
+                .WithMany(d => d.Products);
+        }
+    }
+
+    public enum Role { Admin, Manager, Analist}
+
+    public class User
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(75)]
+        public string FirstName { get; set; }
+
+        [Required]
+        [StringLength(75)]
+        public string LastName { get; set; }
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        public string PasswordHash { get; set; }
+        public Role Role { get; set; }
+        public ICollection<Warehouse> Warehouses { get; set; }
+    }
+
+    public class Warehouse
+    {
+        [Key]
+        public int Id { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string? Name { get; set; }
+        [Required]
+        [StringLength(200)]
+        public string? Location { get; set; }
+        public ICollection<User> Users { get; set; }
+        public ICollection<Product> Products { get; set; }
+    }
+
+    public class Product
+    {
+        [Key]
+        public int Id { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; }
+        [StringLength(500)]
+        public string Description { get; set; }
+        [Required]
+        public double Price { get; set; }
+        [Required]
+        [StringLength(50)]
+        public string Currency { get; set; }
+        public string Image { get; set; }
+        public int StockId { get; set; }
+        public Stock Stock { get; set; }
+        public ICollection<Warehouse> Warehouses { get; set; }
+        public ICollection<Delivery> Deliveries { get; set; }
+    }
+
+    public class Stock
+    {
+        [Key]
+        public int Id { get; set; }
+        [Required]
+        public int StockInWarehouse { get; set; }
+        [Required]
+        public int StockInStore { get; set; }
+        [Required]
+        public int WarehouseCapacity { get; set; }
+        [Required]
+        public int StoreCapacity { get; set; }
+        public int ProductId { get; set; }
+        public Product Product { get; set; }
+    }
+
+    public class Delivery
+    {
+        [Key]
+        public int Id { get; set; }
+        [Required]
+        public int Quantity { get; set; }
+        [DataType(DataType.DateTime)]
+        public DateTime DeliveryDate { get; set; } = DateTime.Now;
+        public ICollection<Product> Products { get; set; }
+    }
+}
