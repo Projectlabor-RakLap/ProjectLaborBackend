@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace ProjectLaborBackend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/user")]
     [ApiController]
     public class UserController : ControllerBase
     {
