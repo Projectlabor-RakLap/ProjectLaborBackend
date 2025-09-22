@@ -9,7 +9,8 @@ namespace ProjectLaborBackend.Profiles
         {
             CreateMap<Warehouse, WarehouseGetDTO>();
             CreateMap<WarehousePostDTO, Warehouse>();
-            CreateMap<WarehouseUpdateDTO, Warehouse>();
+            CreateMap<WarehouseUpdateDTO, Warehouse>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null)); 
         }
     }
 }

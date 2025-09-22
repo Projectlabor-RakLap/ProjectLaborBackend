@@ -3,6 +3,7 @@ using ProjectLaborBackend.Entities;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using System.Collections.Generic;
+using Azure;
 namespace ProjectLaborBackend.Services
 {
     public interface IWarehouseService
@@ -17,10 +18,15 @@ namespace ProjectLaborBackend.Services
     public class WarehouseService : IWarehouseService
     {
         private AppDbContext _context;
-        private IMapper _mapper;   
+        private IMapper _mapper; 
+        public WarehouseService(AppDbContext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
+        }
         public async Task<WarehouseGetDTO> GetWarehouseByIdAsync(int id)
         {
-            var wareHouse = await _context.Warehouses.FirstOrDefaultAsync(x => x.Id == id);
+            Warehouse? wareHouse = await _context.Warehouses.FirstOrDefaultAsync(x => x.Id == id);
             if (wareHouse == null)
             {
                 throw new KeyNotFoundException($"Warehouse with id: {id} is not found");
@@ -38,6 +44,8 @@ namespace ProjectLaborBackend.Services
         {
             if(warehouseDto == null)
                 throw new ArgumentNullException("Empty object passed");
+            if (_context.Warehouses.Any(x => x.Location == warehouseDto.Location))
+                throw new ArgumentException($"There is already an existing warehouse with location: {warehouseDto.Location}");
             Warehouse wareHouse = _mapper.Map<Warehouse>(warehouseDto);
             await _context.Warehouses.AddAsync(wareHouse);
             await _context.SaveChangesAsync();

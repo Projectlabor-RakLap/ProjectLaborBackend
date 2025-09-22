@@ -11,7 +11,7 @@ using ProjectLaborBackend.Services;
 
 namespace ProjectLaborBackend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/warehouse")]
     [ApiController]
     public class WarehouseController : ControllerBase
     {
@@ -33,7 +33,14 @@ namespace ProjectLaborBackend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<WarehouseGetDTO>> GetWarehouse(int id)
         {
-            return await _warehouseService.GetWarehouseByIdAsync(id);
+            try
+            {
+                return await _warehouseService.GetWarehouseByIdAsync(id);
+            }
+            catch(KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         // PUT: api/WarehousesController/5
@@ -53,6 +60,14 @@ namespace ProjectLaborBackend.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch(ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
             return NoContent();
         }
 
@@ -65,11 +80,11 @@ namespace ProjectLaborBackend.Controllers
             {
                 await _warehouseService.CreateWarehouseAsync(warehouse);
             }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
             catch (ArgumentNullException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -81,11 +96,6 @@ namespace ProjectLaborBackend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteWarehouse(int id)
         {
-            var warehouse = await _warehouseService.GetWarehouseByIdAsync(id);
-            if (warehouse == null)
-            {
-                return NotFound();
-            }   
             try
             {
                 await _warehouseService.DeleteWarehouseAsync(id);
@@ -98,9 +108,13 @@ namespace ProjectLaborBackend.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             return NoContent();
-            }
+        }
 
         private bool WarehouseExists(int id)
         {
