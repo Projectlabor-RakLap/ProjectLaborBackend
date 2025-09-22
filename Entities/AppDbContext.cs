@@ -11,7 +11,7 @@ namespace ProjectLaborBackend.Entities
         public DbSet<Warehouse> Warehouses { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Stock> Stocks { get; set; }
-        public DbSet<Delivery> Deliveries { get; set; }
+        public DbSet<StockChange> StockChanges { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -38,7 +38,7 @@ namespace ProjectLaborBackend.Entities
                 .HasForeignKey<Stock>(s => s.ProductId);
 
             modelBuilder.Entity<Product>()
-                .HasMany(p => p.Deliveries)
+                .HasMany(p => p.StockChanges)
                 .WithMany(d => d.Products);
         }
     }
@@ -85,7 +85,7 @@ namespace ProjectLaborBackend.Entities
     public class Product
     {
         [Key]
-        public int Id { get; set; }
+        public int EAN { get; set; }
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
@@ -100,7 +100,7 @@ namespace ProjectLaborBackend.Entities
         public int StockId { get; set; }
         public Stock Stock { get; set; }
         public ICollection<Warehouse> Warehouses { get; set; }
-        public ICollection<Delivery> Deliveries { get; set; }
+        public ICollection<StockChange> StockChanges { get; set; }
     }
 
     public class Stock
@@ -119,14 +119,14 @@ namespace ProjectLaborBackend.Entities
         public Product Product { get; set; }
     }
 
-    public class Delivery
+    public class StockChange
     {
         [Key]
         public int Id { get; set; }
         [Required]
         public int Quantity { get; set; }
         [DataType(DataType.DateTime)]
-        public DateTime DeliveryDate { get; set; } = DateTime.Now;
+        public DateTime ChangeDate { get; set; } = DateTime.Now;
         public ICollection<Product> Products { get; set; }
     }
 }
