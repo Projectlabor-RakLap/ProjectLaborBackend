@@ -1,4 +1,6 @@
-
+using ProjectLaborBackend;
+using ProjectLaborBackend.Profiles;
+using ProjectLaborBackend.Services;
 namespace ProjectLaborBackend
 {
     public class Program
@@ -12,7 +14,9 @@ namespace ProjectLaborBackend
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
-
+            builder.Services.AddAutoMapper(cfg => { }, typeof(WarehouseProfile));
+            builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+            builder.Services.AddSwaggerGen();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -22,7 +26,8 @@ namespace ProjectLaborBackend
             }
 
             app.UseHttpsRedirection();
-
+            app.UseSwagger();
+            app.UseSwaggerUI();
             app.UseAuthorization();
 
 
