@@ -68,7 +68,7 @@ namespace ProjectLaborBackend.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            return NoContent();
+            return Created();
         }
 
         // POST: api/WarehousesController
@@ -89,7 +89,7 @@ namespace ProjectLaborBackend.Controllers
                 return BadRequest(ex.Message);
             }
 
-            return Ok("Created");
+            return Created();
         }
 
         // DELETE: api/WarehousesController/5
