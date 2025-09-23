@@ -20,6 +20,8 @@ namespace ProjectLaborBackend.Services
         Task<string> LoginAsync(UserLoginDTO UserDTO);
         Task<UserGetDTO> UpdateProfileAsync(int userId, UserPutDTO UserDTO);
         Task DeleteUser(int id);
+        Task<UserGetDTO> ForgotUpdateUserPasswordAsync(ForgotUserPutPasswordDTO UserDTO);
+        Task<UserGetDTO> UpdateUserPasswordAsync(int id, UserPutPasswordDTO UserDTO);
     }
     public class UserService : IUserService
     {
@@ -47,13 +49,11 @@ namespace ProjectLaborBackend.Services
 
         public async Task<UserGetDTO> RegisterAsync(UserRegisterDTO UserDTO)
         {
-            User? u = await context.Users.FirstOrDefaultAsync(x => x.FirstName == UserDTO.FirstName || x.LastName == UserDTO.LastName || x.Email == UserDTO.Email);
+            User? u = await context.Users.FirstOrDefaultAsync(x => x.Email == UserDTO.Email);
 
             if (u != null)
             {
-                string message = "There is already a User with this ";
-                if (u.Email == UserDTO.Email) throw new ArgumentException(message + "Email");
-                if (u.FirstName == UserDTO.FirstName && u.LastName == UserDTO.LastName) throw new ArgumentException(message + "Username");
+                if (u.Email == UserDTO.Email) throw new ArgumentException("Email");
             }
 
             var user = mapper.Map<User>(UserDTO);
@@ -68,12 +68,13 @@ namespace ProjectLaborBackend.Services
         public async Task<string> LoginAsync(UserLoginDTO UserDTO)
         {
             var user = await context.Users.FirstOrDefaultAsync(x => x.Email == UserDTO.Email);
-            if (user == null || Argon2.Verify(UserDTO.Password, user.PasswordHash))
+            if (user == null || !(Argon2.Verify(user.PasswordHash, UserDTO.Password)))
             {
                 throw new UnauthorizedAccessException("Invalid credentials.");
             }
 
-            return await GenerateToken(user);
+            return "Logged In";
+            //return await GenerateToken(user);
         }
 
         private async Task<string> GenerateToken(User user)
@@ -117,6 +118,40 @@ namespace ProjectLaborBackend.Services
 
             context.Users.Remove(user);
             await context.SaveChangesAsync();
+        }
+
+        public async Task<UserGetDTO> ForgotUpdateUserPasswordAsync(ForgotUserPutPasswordDTO UserDTO)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Email == UserDTO.Email);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("This user does not exists.");
+            }
+            if (Argon2.Verify(user.PasswordHash, UserDTO.Password))
+            {
+                return mapper.Map<UserGetDTO>(user);
+            }
+            user.PasswordHash = Argon2.Hash(UserDTO.Password);
+            await context.SaveChangesAsync();
+
+            return mapper.Map<UserGetDTO>(user);
+        }
+
+        public async Task<UserGetDTO> UpdateUserPasswordAsync(int id, UserPutPasswordDTO UserDTO)
+        {
+            var user = await context.Users.FindAsync(id);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("This user does not exists.");
+            }
+            if (!(Argon2.Verify(user.PasswordHash, UserDTO.Password)))
+            {
+                throw new Exception("Passwords does not match");
+            }
+            user.PasswordHash = Argon2.Hash(UserDTO.NewPassword);
+            await context.SaveChangesAsync();
+
+            return mapper.Map<UserGetDTO>(user);
         }
     }
 }

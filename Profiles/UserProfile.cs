@@ -11,6 +11,8 @@ namespace ProjectLaborBackend.Profiles
             CreateMap<UserRegisterDTO, User>();
             CreateMap<UserLoginDTO, User>();
             CreateMap<UserPutDTO, User>();
+            CreateMap<ForgotUserPutPasswordDTO, User>();
+            CreateMap<UserPutPasswordDTO, User>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.NewPassword));
             CreateMap<User, UserGetDTO>();
         }
     }

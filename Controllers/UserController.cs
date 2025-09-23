@@ -60,6 +60,7 @@ namespace ProjectLaborBackend.Controllers
         {
             try
             {
+                await userService.LoginAsync(userDto);
                 return Ok();
             }
             catch (UnauthorizedAccessException e) { return Unauthorized(e.Message); }
@@ -86,6 +87,31 @@ namespace ProjectLaborBackend.Controllers
             {
                 await userService.DeleteUser(id);
                 return Ok();
+            }
+            catch (KeyNotFoundException e) { return NotFound(e.Message); }
+            catch (Exception e) { return BadRequest(e.Message); }
+        }
+
+        [HttpPut("update-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotUpdateProfilePassword([FromBody] ForgotUserPutPasswordDTO userDto)
+        {
+            try
+            {
+                var result = await userService.ForgotUpdateUserPasswordAsync(userDto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException e) { return NotFound(e.Message); }
+            catch (Exception e) { return BadRequest(e.Message); }
+        }
+
+        [HttpPut("update-password/{id}")]
+        public async Task<IActionResult> UpdateProfilePassword(int userId, [FromBody] UserPutPasswordDTO userDto)
+        {
+            try
+            {
+                var result = await userService.UpdateUserPasswordAsync(userId, userDto);
+                return Ok(result);
             }
             catch (KeyNotFoundException e) { return NotFound(e.Message); }
             catch (Exception e) { return BadRequest(e.Message); }
