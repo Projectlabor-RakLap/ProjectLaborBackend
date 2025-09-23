@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Dtos.Warehouse;
 using ProjectLaborBackend.Services;
@@ -24,14 +18,14 @@ namespace ProjectLaborBackend.Controllers
 
         // GET: api/WarehousesController
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<WarehouseGetDTO>>> GetWarehouses()
+        public async Task<ActionResult<IEnumerable<WarehouseGetDTO>>> GetAllWarehouses()
         {
             return await _warehouseService.GetAllWarehousesAsync();
         }
 
         // GET: api/WarehousesController2/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<WarehouseGetDTO>> GetWarehouse(int id)
+        public async Task<ActionResult<WarehouseGetDTO>> GetWarehouseById(int id)
         {
             try
             {
@@ -68,7 +62,7 @@ namespace ProjectLaborBackend.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            return Created();
+            return NoContent();
         }
 
         // POST: api/WarehousesController

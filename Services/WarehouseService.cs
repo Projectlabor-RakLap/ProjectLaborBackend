@@ -2,8 +2,7 @@
 using ProjectLaborBackend.Entities;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
-using System.Collections.Generic;
-using Azure;
+
 namespace ProjectLaborBackend.Services
 {
     public interface IWarehouseService
