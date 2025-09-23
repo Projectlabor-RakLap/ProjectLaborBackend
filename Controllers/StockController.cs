@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProjectLaborBackend.Dtos.Stock;
+using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -26,27 +27,73 @@ namespace ProjectLaborBackend.Controllers
 
         // GET api/<StockController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult<StockGetDTO>> GetStockById(int id)
         {
-            return "value";
+            try
+            {
+                return await _stockService.GetStockByIdAsync(id);
+            }
+            catch (KeyNotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
         }
 
         // POST api/<StockController>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public async Task<ActionResult<StockCreateDTO>> CreateStock([FromBody] StockCreateDTO stock)
         {
+            try
+            {
+                await _stockService.CreateStockAsync(stock);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+            return Ok("Stock created!");
         }
 
         // PUT api/<StockController>/5
         [HttpPatch("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public async Task<IActionResult> UpdateStock(int id, [FromBody] StockUpdateDto stock)
         {
+            try
+            {
+                await _stockService.UpdateStockAsync(id, stock);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            return Created();
         }
 
         // DELETE api/<StockController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> DeleteStock(int id)
         {
+            var stock = await _stockService.GetStockByIdAsync(id);
+            if (stock == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                await _stockService.DeleteStockAsync(id);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+            return NoContent();
         }
     }
 }

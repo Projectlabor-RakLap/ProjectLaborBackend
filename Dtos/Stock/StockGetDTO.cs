@@ -9,5 +9,7 @@
         public int StoreCapacity { get; set; }
         public double Price { get; set; }
         public string Currency { get; set; }
+        public int ProductId { get; set; }
+        public int WarehouseId { get; set; }
     }
 }
