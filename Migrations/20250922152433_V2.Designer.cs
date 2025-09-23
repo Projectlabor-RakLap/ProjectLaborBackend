@@ -12,8 +12,8 @@ using ProjectLaborBackend.Entities;
 namespace ProjectLaborBackend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250915144605_Init")]
-    partial class Init
+    [Migration("20250922152433_V2")]
+    partial class V2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,55 +25,6 @@ namespace ProjectLaborBackend.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("DeliveryProduct", b =>
-                {
-                    b.Property<int>("DeliveriesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DeliveriesId", "ProductsId");
-
-                    b.HasIndex("ProductsId");
-
-                    b.ToTable("DeliveryProduct");
-                });
-
-            modelBuilder.Entity("ProductWarehouse", b =>
-                {
-                    b.Property<int>("ProductsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("WarehousesId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ProductsId", "WarehousesId");
-
-                    b.HasIndex("WarehousesId");
-
-                    b.ToTable("ProductWarehouse");
-                });
-
-            modelBuilder.Entity("ProjectLaborBackend.Entities.Delivery", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DeliveryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Deliveries");
-                });
-
             modelBuilder.Entity("ProjectLaborBackend.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -82,15 +33,15 @@ namespace ProjectLaborBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EAN")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Image")
                         .IsRequired()
@@ -100,12 +51,6 @@ namespace ProjectLaborBackend.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
-                    b.Property<int>("StockId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -119,6 +64,14 @@ namespace ProjectLaborBackend.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -135,12 +88,40 @@ namespace ProjectLaborBackend.Migrations
                     b.Property<int>("WarehouseCapacity")
                         .HasColumnType("int");
 
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId")
-                        .IsUnique();
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("WarehouseId");
 
                     b.ToTable("Stocks");
+                });
+
+            modelBuilder.Entity("ProjectLaborBackend.Entities.StockChange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("StockChanges");
                 });
 
             modelBuilder.Entity("ProjectLaborBackend.Entities.User", b =>
@@ -216,41 +197,30 @@ namespace ProjectLaborBackend.Migrations
                     b.ToTable("UserWarehouse");
                 });
 
-            modelBuilder.Entity("DeliveryProduct", b =>
-                {
-                    b.HasOne("ProjectLaborBackend.Entities.Delivery", null)
-                        .WithMany()
-                        .HasForeignKey("DeliveriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ProjectLaborBackend.Entities.Product", null)
-                        .WithMany()
-                        .HasForeignKey("ProductsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ProductWarehouse", b =>
-                {
-                    b.HasOne("ProjectLaborBackend.Entities.Product", null)
-                        .WithMany()
-                        .HasForeignKey("ProductsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ProjectLaborBackend.Entities.Warehouse", null)
-                        .WithMany()
-                        .HasForeignKey("WarehousesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ProjectLaborBackend.Entities.Stock", b =>
                 {
                     b.HasOne("ProjectLaborBackend.Entities.Product", "Product")
-                        .WithOne("Stock")
-                        .HasForeignKey("ProjectLaborBackend.Entities.Stock", "ProductId")
+                        .WithMany("Stocks")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProjectLaborBackend.Entities.Warehouse", "Warehouse")
+                        .WithMany("Stock")
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("ProjectLaborBackend.Entities.StockChange", b =>
+                {
+                    b.HasOne("ProjectLaborBackend.Entities.Product", "Product")
+                        .WithMany("StockChanges")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -274,8 +244,14 @@ namespace ProjectLaborBackend.Migrations
 
             modelBuilder.Entity("ProjectLaborBackend.Entities.Product", b =>
                 {
-                    b.Navigation("Stock")
-                        .IsRequired();
+                    b.Navigation("StockChanges");
+
+                    b.Navigation("Stocks");
+                });
+
+            modelBuilder.Entity("ProjectLaborBackend.Entities.Warehouse", b =>
+                {
+                    b.Navigation("Stock");
                 });
 #pragma warning restore 612, 618
         }
