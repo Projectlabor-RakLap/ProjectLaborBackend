@@ -32,11 +32,6 @@ namespace ProjectLaborBackend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseSqlServer("Server=localhost,1433;Database=ProjektLaborDb;User Id=sa;Password=h6twqPNO;TrustServerCertificate=true;\r\n");
-            });
-
             builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddEndpointsApiExplorer();
