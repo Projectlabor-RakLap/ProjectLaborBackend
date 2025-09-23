@@ -96,8 +96,15 @@ namespace ProjectLaborBackend.Services
 
             mapper.Map(UserUpdateDTO, user);
 
-            context.Users.Update(user);
-            await context.SaveChangesAsync();
+            try
+            {
+                context.Users.Update(user);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex) 
+            {
+                throw new Exception(ex.Message);
+            }
 
             return mapper.Map<UserGetDTO>(user);
         }
