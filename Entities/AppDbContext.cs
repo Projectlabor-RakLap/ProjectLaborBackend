@@ -7,6 +7,9 @@ namespace ProjectLaborBackend.Entities
 {
     public class AppDbContext : DbContext
     {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        {
+        }
         public DbSet<User> Users { get; set; }
         public DbSet<Warehouse> Warehouses { get; set; }
         public DbSet<Stock> Stocks { get; set; }
@@ -15,7 +18,7 @@ namespace ProjectLaborBackend.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string connectionString = "Server=MSI\\LOCALDB;Database=RakLapDb;Trusted_Connection=True;TrustServerCertificate=True;";
+            string connectionString = "Server=localhost,1433;Database=ProjektLaborDb;User Id=sa;Password=h6twqPNO;TrustServerCertificate=true;\r\n";
             // string connectionString = "Server=MSI\\LOCALDB;Database=RakLapDb;Trusted_Connection=True;TrustServerCertificate=True;"; Márk connection string
             optionsBuilder.UseSqlServer(connectionString);
         }
