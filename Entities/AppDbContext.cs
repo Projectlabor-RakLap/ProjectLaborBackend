@@ -15,7 +15,8 @@ namespace ProjectLaborBackend.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string connectionString = "Server=MSI\\LOCALDB;Database=RakLapDb;Trusted_Connection=True;TrustServerCertificate=True;";
+            DotNetEnv.Env.Load();
+            string connectionString = DotNetEnv.Env.GetString("DB_CONNECTION_STRING");
             // string connectionString = "Server=MSI\\LOCALDB;Database=RakLapDb;Trusted_Connection=True;TrustServerCertificate=True;"; Márk connection string
             optionsBuilder.UseSqlServer(connectionString);
         }
