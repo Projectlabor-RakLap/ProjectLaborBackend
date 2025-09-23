@@ -18,8 +18,8 @@ namespace ProjectLaborBackend.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string connectionString = "Server=localhost,1433;Database=ProjektLaborDb;User Id=sa;Password=h6twqPNO;TrustServerCertificate=true;\r\n";
-            // string connectionString = "Server=MSI\\LOCALDB;Database=RakLapDb;Trusted_Connection=True;TrustServerCertificate=True;"; Márk connection string
+            DotNetEnv.Env.Load();
+            string connectionString = DotNetEnv.Env.GetString("DB_CONNECTION_STRING");
             optionsBuilder.UseSqlServer(connectionString);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
