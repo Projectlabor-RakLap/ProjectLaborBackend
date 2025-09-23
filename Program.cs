@@ -2,8 +2,6 @@ using ProjectLaborBackend;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
 using ProjectLaborBackend.Entities;
-using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 namespace ProjectLaborBackend
 {
     public class Program
@@ -15,10 +13,10 @@ namespace ProjectLaborBackend
             // Add DbContext
             builder.Services.AddDbContext<AppDbContext>();
 
-
             // Add services to the container.
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+            builder.Services.AddScoped<IStockService, StockService>();
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
@@ -26,6 +24,7 @@ namespace ProjectLaborBackend
             //Automapper maps
             builder.Services.AddAutoMapper(cfg => { }, typeof(ProductProfile));
             builder.Services.AddAutoMapper(cfg => { }, typeof(WarehouseProfile));
+            builder.Services.AddAutoMapper(cfg => { }, typeof(StockProfile));
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
