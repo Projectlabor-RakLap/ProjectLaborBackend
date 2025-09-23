@@ -2,6 +2,8 @@ using ProjectLaborBackend;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
 using ProjectLaborBackend.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 namespace ProjectLaborBackend
 {
     public class Program
@@ -10,14 +12,24 @@ namespace ProjectLaborBackend
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Add DbContext
             builder.Services.AddDbContext<AppDbContext>();
-            builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
-            builder.Services.AddAutoMapper(cfg => { }, typeof(WarehouseProfile));
+
+
+            // Add services to the container.
+            builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+
+            builder.Services.AddControllers();
+            builder.Services.AddOpenApi();
+            
+            //Automapper maps
+            builder.Services.AddAutoMapper(cfg => { }, typeof(ProductProfile));
+            builder.Services.AddAutoMapper(cfg => { }, typeof(WarehouseProfile));
+
+            builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -27,8 +39,10 @@ namespace ProjectLaborBackend
             }
 
             app.UseHttpsRedirection();
+
             app.UseSwagger();
             app.UseSwaggerUI();
+
             app.UseAuthorization();
 
 

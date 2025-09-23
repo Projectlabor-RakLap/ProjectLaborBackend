@@ -9,8 +9,8 @@ namespace ProjectLaborBackend.Entities
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Warehouse> Warehouses { get; set; }
-        public DbSet<Product> Products { get; set; }
         public DbSet<Stock> Stocks { get; set; }
+        public DbSet<Product> Products { get; set; }
         public DbSet<StockChange> StockChanges { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -30,17 +30,20 @@ namespace ProjectLaborBackend.Entities
                 .WithMany(w => w.Users);
 
             modelBuilder.Entity<Warehouse>()
-                .HasMany(w => w.Products)
-                .WithMany(p => p.Warehouses);
+                .HasMany(w => w.Stock)
+                .WithOne(s => s.Warehouse);
 
             modelBuilder.Entity<Product>()
-                .HasOne(p => p.Stock)
-                .WithOne(s => s.Product)
-                .HasForeignKey<Stock>(s => s.ProductId);
+                .HasMany(p => p.Stocks)
+                .WithOne(s => s.Product);
 
             modelBuilder.Entity<Product>()
                 .HasMany(p => p.StockChanges)
-                .WithMany(d => d.Products);
+                .WithOne(sc => sc.Product);
+
+            modelBuilder.Entity<Stock>()
+                .HasOne(s => s.Product)
+                .WithMany(p => p.Stocks);
         }
     }
 
@@ -75,32 +78,28 @@ namespace ProjectLaborBackend.Entities
         public int Id { get; set; }
         [Required]
         [StringLength(100)]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Required]
         [StringLength(200)]
-        public string? Location { get; set; }
+        public string Location { get; set; }
         public ICollection<User> Users { get; set; }
-        public ICollection<Product> Products { get; set; }
+        public ICollection<Stock> Stock { get; set; }
     }
 
     public class Product
     {
         [Key]
-        public int EAN { get; set; }
+        public int Id { get; set; }
+        [Required]
+        [StringLength(20)]
+        public string EAN { get; set; }
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
         [StringLength(500)]
         public string Description { get; set; }
-        [Required]
-        public double Price { get; set; }
-        [Required]
-        [StringLength(50)]
-        public string Currency { get; set; }
         public string Image { get; set; }
-        public int StockId { get; set; }
-        public Stock Stock { get; set; }
-        public ICollection<Warehouse> Warehouses { get; set; }
+        public ICollection<Stock> Stocks { get; set; }
         public ICollection<StockChange> StockChanges { get; set; }
     }
 
@@ -116,6 +115,15 @@ namespace ProjectLaborBackend.Entities
         public int WarehouseCapacity { get; set; }
         [Required]
         public int StoreCapacity { get; set; }
+
+        [Required]
+        public double Price { get; set; }
+        [Required]
+        [StringLength(50)]
+        public string Currency { get; set; }
+        public int WarehouseId { get; set; }
+        public Warehouse Warehouse { get; set; }
+
         public int ProductId { get; set; }
         public Product Product { get; set; }
     }
@@ -128,6 +136,7 @@ namespace ProjectLaborBackend.Entities
         public int Quantity { get; set; }
         [DataType(DataType.DateTime)]
         public DateTime ChangeDate { get; set; } = DateTime.Now;
-        public ICollection<Product> Products { get; set; }
+        public int ProductId { get; set; }
+        public Product Product { get; set; }
     }
 }

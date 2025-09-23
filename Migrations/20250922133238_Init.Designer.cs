@@ -12,8 +12,8 @@ using ProjectLaborBackend.Entities;
 namespace ProjectLaborBackend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250922115423_V1")]
-    partial class V1
+    [Migration("20250922133238_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,13 +27,13 @@ namespace ProjectLaborBackend.Migrations
 
             modelBuilder.Entity("ProductStockChange", b =>
                 {
-                    b.Property<int>("ProductsEAN")
+                    b.Property<int>("ProductsId")
                         .HasColumnType("int");
 
                     b.Property<int>("StockChangesId")
                         .HasColumnType("int");
 
-                    b.HasKey("ProductsEAN", "StockChangesId");
+                    b.HasKey("ProductsId", "StockChangesId");
 
                     b.HasIndex("StockChangesId");
 
@@ -42,13 +42,13 @@ namespace ProjectLaborBackend.Migrations
 
             modelBuilder.Entity("ProductWarehouse", b =>
                 {
-                    b.Property<int>("ProductsEAN")
+                    b.Property<int>("ProductsId")
                         .HasColumnType("int");
 
                     b.Property<int>("WarehousesId")
                         .HasColumnType("int");
 
-                    b.HasKey("ProductsEAN", "WarehousesId");
+                    b.HasKey("ProductsId", "WarehousesId");
 
                     b.HasIndex("WarehousesId");
 
@@ -57,11 +57,11 @@ namespace ProjectLaborBackend.Migrations
 
             modelBuilder.Entity("ProjectLaborBackend.Entities.Product", b =>
                 {
-                    b.Property<int>("EAN")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EAN"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -72,6 +72,11 @@ namespace ProjectLaborBackend.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EAN")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Image")
                         .IsRequired()
@@ -88,7 +93,7 @@ namespace ProjectLaborBackend.Migrations
                     b.Property<int>("StockId")
                         .HasColumnType("int");
 
-                    b.HasKey("EAN");
+                    b.HasKey("Id");
 
                     b.ToTable("Products");
                 });
@@ -220,7 +225,7 @@ namespace ProjectLaborBackend.Migrations
                 {
                     b.HasOne("ProjectLaborBackend.Entities.Product", null)
                         .WithMany()
-                        .HasForeignKey("ProductsEAN")
+                        .HasForeignKey("ProductsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -235,7 +240,7 @@ namespace ProjectLaborBackend.Migrations
                 {
                     b.HasOne("ProjectLaborBackend.Entities.Product", null)
                         .WithMany()
-                        .HasForeignKey("ProductsEAN")
+                        .HasForeignKey("ProductsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
