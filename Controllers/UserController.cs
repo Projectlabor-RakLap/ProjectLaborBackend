@@ -23,14 +23,14 @@ namespace ProjectLaborBackend.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUsers()
         {
             return await userService.GetUsersAsync();
         }
 
         [HttpGet("{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserGetDTO>> GetUser(int id)
         {
             try
@@ -60,8 +60,8 @@ namespace ProjectLaborBackend.Controllers
         {
             try
             {
-                await userService.LoginAsync(userDto);
-                return Ok();
+                var token = await userService.LoginAsync(userDto);
+                return Ok(new { Token = token });
             }
             catch (UnauthorizedAccessException e) { return Unauthorized(e.Message); }
             catch (Exception e) { return BadRequest(e.Message); }
@@ -80,7 +80,7 @@ namespace ProjectLaborBackend.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             try

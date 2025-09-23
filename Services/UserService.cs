@@ -27,11 +27,13 @@ namespace ProjectLaborBackend.Services
     {
         private readonly AppDbContext context;
         private readonly IMapper mapper;
+        private readonly IConfiguration configuration;
 
-        public UserService(AppDbContext _context, IMapper _mapper)
+        public UserService(AppDbContext _context, IMapper _mapper, IConfiguration _configuration)
         {
             context = _context;
             mapper = _mapper;
+            configuration = _configuration;
         }
 
         public async Task<List<UserGetDTO>> GetUsersAsync()
@@ -72,14 +74,36 @@ namespace ProjectLaborBackend.Services
             {
                 throw new UnauthorizedAccessException("Invalid credentials.");
             }
-
-            return "Logged In";
-            //return await GenerateToken(user);
+            
+            return await GenerateToken(user);
         }
 
         private async Task<string> GenerateToken(User user)
         {
-            return ("Logged In");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(configuration["Jwt:ExpireDays"]));
+
+            var id = await GetClaimsIdentity(user);
+            var token = new JwtSecurityToken(configuration["Jwt:Issuer"], configuration["Jwt:Audience"], id.Claims, expires: expires, signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private async Task<ClaimsIdentity> GetClaimsIdentity(User user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.FirstName + " " + user.LastName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Sid, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.AuthTime, DateTime.Now.ToString(CultureInfo.InvariantCulture))
+            };
+
+            claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString()));
+
+            return new ClaimsIdentity(claims, "Token");
         }
 
         public async Task<UserGetDTO> UpdateProfileAsync(int userId, UserPutDTO UserUpdateDTO)
