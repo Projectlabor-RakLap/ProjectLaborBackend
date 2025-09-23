@@ -28,9 +28,8 @@ namespace ProjectLaborBackend.Services
         {
             Warehouse? wareHouse = await _context.Warehouses.FirstOrDefaultAsync(x => x.Id == id);
             if (wareHouse == null)
-            {
                 throw new KeyNotFoundException($"Warehouse with id: {id} is not found");
-            }
+
             return _mapper.Map<WarehouseGetDTO>(wareHouse);
         }
 
@@ -43,9 +42,10 @@ namespace ProjectLaborBackend.Services
         public async Task CreateWarehouseAsync(WarehousePostDTO warehouseDto)
         {
             if(warehouseDto == null)
-                throw new ArgumentNullException("Empty object passed");
+                throw new ArgumentNullException("Name or location needed");
             if (_context.Warehouses.Any(x => x.Location == warehouseDto.Location))
                 throw new ArgumentException($"There is already an existing warehouse with location: {warehouseDto.Location}");
+
             Warehouse wareHouse = _mapper.Map<Warehouse>(warehouseDto);
             await _context.Warehouses.AddAsync(wareHouse);
             await _context.SaveChangesAsync();
@@ -68,6 +68,8 @@ namespace ProjectLaborBackend.Services
             Warehouse? wareHouse = await _context.Warehouses.FirstOrDefaultAsync(x => x.Id == id);
             if (wareHouse == null)
                 throw new KeyNotFoundException($"Warehouse with id: {id} is not found");
+            if(warehouseDto.Location != null && _context.Warehouses.Any(x => x.Location == warehouseDto.Location && x.Id != id))
+                throw new ArgumentException($"There is already an existing warehouse with location: {warehouseDto.Location}");
 
             _mapper.Map(warehouseDto, wareHouse);
 
