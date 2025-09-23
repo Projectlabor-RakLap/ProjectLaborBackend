@@ -12,25 +12,12 @@ namespace ProjectLaborBackend.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Deliveries",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    DeliveryDate = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Deliveries", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Products",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    EAN = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
@@ -41,6 +28,20 @@ namespace ProjectLaborBackend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Products", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StockChanges",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    ChangeDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StockChanges", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,30 +76,6 @@ namespace ProjectLaborBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DeliveryProduct",
-                columns: table => new
-                {
-                    DeliveriesId = table.Column<int>(type: "int", nullable: false),
-                    ProductsId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DeliveryProduct", x => new { x.DeliveriesId, x.ProductsId });
-                    table.ForeignKey(
-                        name: "FK_DeliveryProduct_Deliveries_DeliveriesId",
-                        column: x => x.DeliveriesId,
-                        principalTable: "Deliveries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DeliveryProduct_Products_ProductsId",
-                        column: x => x.ProductsId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Stocks",
                 columns: table => new
                 {
@@ -117,6 +94,30 @@ namespace ProjectLaborBackend.Migrations
                         name: "FK_Stocks_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductStockChange",
+                columns: table => new
+                {
+                    ProductsId = table.Column<int>(type: "int", nullable: false),
+                    StockChangesId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductStockChange", x => new { x.ProductsId, x.StockChangesId });
+                    table.ForeignKey(
+                        name: "FK_ProductStockChange_Products_ProductsId",
+                        column: x => x.ProductsId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProductStockChange_StockChanges_StockChangesId",
+                        column: x => x.StockChangesId,
+                        principalTable: "StockChanges",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -170,9 +171,9 @@ namespace ProjectLaborBackend.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeliveryProduct_ProductsId",
-                table: "DeliveryProduct",
-                column: "ProductsId");
+                name: "IX_ProductStockChange_StockChangesId",
+                table: "ProductStockChange",
+                column: "StockChangesId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductWarehouse_WarehousesId",
@@ -195,7 +196,7 @@ namespace ProjectLaborBackend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DeliveryProduct");
+                name: "ProductStockChange");
 
             migrationBuilder.DropTable(
                 name: "ProductWarehouse");
@@ -207,7 +208,7 @@ namespace ProjectLaborBackend.Migrations
                 name: "UserWarehouse");
 
             migrationBuilder.DropTable(
-                name: "Deliveries");
+                name: "StockChanges");
 
             migrationBuilder.DropTable(
                 name: "Products");
