@@ -22,6 +22,7 @@ namespace ProjectLaborBackend.Services
         Task DeleteUser(int id);
         Task<UserGetDTO> ForgotUpdateUserPasswordAsync(ForgotUserPutPasswordDTO UserDTO);
         Task<UserGetDTO> UpdateUserPasswordAsync(int id, UserPutPasswordDTO UserDTO);
+        void InsertOrUpdate(List<List<string>> data);
     }
     public class UserService : IUserService
     {
@@ -152,6 +153,11 @@ namespace ProjectLaborBackend.Services
             await context.SaveChangesAsync();
 
             return mapper.Map<UserGetDTO>(user);
+        }
+
+        public async void InsertOrUpdate(List<List<string>> data)
+        {
+            
         }
     }
 }

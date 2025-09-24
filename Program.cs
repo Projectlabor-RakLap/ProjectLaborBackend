@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using ProjectLaborBackend.Controllers;
+using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
-using ProjectLaborBackend.Entities;
 
 namespace ProjectLaborBackend
 {
@@ -13,13 +15,11 @@ namespace ProjectLaborBackend
             // Add DbContext
             builder.Services.AddDbContext<AppDbContext>();
 
-
             // Add services to the container.
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IWarehouseService, WarehouseService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IStockChangeService, StockChangeService>();
-
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();

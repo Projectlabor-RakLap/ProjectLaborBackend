@@ -11,6 +11,7 @@ namespace ProjectLaborBackend.Services
         Task CreateStockChangeAsync(StockChangeCreateDTO stockChangeDto);
         Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto);
         Task DeleteStockChangeAsync(int id);
+        Task InsertOrUpdate(List<List<string>> data);
     }
     public class StockChangeService : IStockChangeService
     {
@@ -86,6 +87,54 @@ namespace ProjectLaborBackend.Services
                 throw new KeyNotFoundException($"StockChange with id: {id} is not found");
             _context.StockChanges.Remove(stockChange);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task InsertOrUpdate(List<List<string>> data)
+        {
+            List<StockChange> currentStockChange = _context.StockChanges.ToList();
+            List<StockChange> StockChangeFromExcel = new List<StockChange>();
+            List<StockChange> StockChangeToAdd = new List<StockChange>();
+            List<StockChange> StockChangeToUpdate = new List<StockChange>();
+            foreach (List<string> item in data)
+            {
+                StockChangeFromExcel.Add(new StockChange
+                {
+                    Quantity = Convert.ToInt32(item[0]),
+                    ChangeDate = Convert.ToDateTime(item[1]),
+                    ProductId = Convert.ToInt32(item[2]),
+                });
+            }
+            foreach (StockChange stockChange in StockChangeFromExcel)
+            {
+                if (!currentStockChange.Any(p => p.Id == stockChange.Id))
+                {
+                    StockChangeToAdd.Add(stockChange);
+                }
+                else
+                {
+                    StockChange existingStockChange = currentStockChange.First(p => p.Id == stockChange.Id);
+                    existingStockChange.Quantity = stockChange.Quantity;
+                    existingStockChange.ProductId = stockChange.ProductId;
+                    StockChangeToUpdate.Add(existingStockChange);
+                }
+            }
+
+            if (StockChangeToAdd.Count > 0)
+            {
+                await _context.StockChanges.AddRangeAsync(StockChangeToAdd);
+            }
+            if (StockChangeToUpdate.Count > 0)
+            {
+                _context.StockChanges.UpdateRange(StockChangeToUpdate);
+            }
+            try
+            {
+                 _context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
         }
     }
 }

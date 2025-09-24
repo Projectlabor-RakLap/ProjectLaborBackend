@@ -13,6 +13,7 @@ namespace ProjectLaborBackend.Services
         Task CreateProductAsync(ProductCreateDTO product);
         Task UpdateProductAsync(int id, ProductUpdateDTO dto);
         Task DeleteProductAsync(int id);
+        Task InsertOrUpdate(List<List<string>> data);
     }
 
     public class ProductService : IProductService
@@ -34,7 +35,7 @@ namespace ProjectLaborBackend.Services
 
         public async Task DeleteProductAsync(int id)
         {
-            Product product = await _context.Products.FindAsync(id);
+            Product? product = await _context.Products.FindAsync(id);
             if (product == null)
             {
                 throw new KeyNotFoundException("Product not found");
@@ -51,7 +52,7 @@ namespace ProjectLaborBackend.Services
 
         public async Task<ProductGetDTO?> GetProductByIdAsync(int id)
         {
-            Product product = await _context.Products.FindAsync(id);
+            Product? product = await _context.Products.FindAsync(id);
             if (product == null)
             {
                 throw new KeyNotFoundException("Product not found!");
@@ -82,6 +83,59 @@ namespace ProjectLaborBackend.Services
             catch (DbUpdateConcurrencyException)
             {
                 throw;
+            }
+        }
+
+        public async Task InsertOrUpdate(List<List<string>> data)
+        {
+            List<Product> currentProducts = await _context.Products.ToListAsync();
+            List<Product> productsFromExcel = new List<Product>();
+            List<Product> productsToAdd = new List<Product>();
+            List<Product> productsToUpdate = new List<Product>();
+            foreach (List<string> item in data)
+            {
+                productsFromExcel.Add(new Product
+                {
+                    EAN = item[0],
+                    Name = item[1],
+                    Description = item[2],
+                    Image = "temp"
+                });
+            }
+            foreach (Product product in productsFromExcel)
+            {
+                if (!currentProducts.Any(p => p.EAN == product.EAN))
+                {
+                    productsToAdd.Add(product);
+                }
+                else
+                {
+                    Product existingProduct = currentProducts.First(p => p.EAN == product.EAN);
+                    existingProduct.Name = product.Name;
+                    existingProduct.Description = product.Description;
+                    productsToUpdate.Add(existingProduct);
+                }
+            }
+
+            if (productsToAdd.Count > 0)
+            {
+                await _context.Products.AddRangeAsync(productsToAdd);
+            }
+            if (productsToUpdate.Count > 0)
+            {
+                 _context.Products.UpdateRange(productsToUpdate);
+            }
+            try
+            {
+                 await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while saving changes to the database.", ex);
             }
         }
     }
