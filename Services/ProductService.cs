@@ -28,6 +28,26 @@ namespace ProjectLaborBackend.Services
 
         public async Task CreateProductAsync(ProductCreateDTO product)
         {
+            if (product.EAN.Length > 20)
+            {
+                throw new ArgumentException("EAN must be 20 characters or less!");
+            }
+
+            if (await _context.Products.AnyAsync(p => p.EAN == product.EAN))
+            {
+                throw new ArgumentException("Product with this EAN already exists!");
+            }
+
+            if (product.Name.Length > 100)
+            {
+                throw new ArgumentException("Product name must be 100 characters or less!");
+            }
+
+            if (product.Description.Length > 500)
+            {
+                throw new ArgumentException("Description must be 500 characters or less!");
+            }
+
             await _context.Products.AddAsync(_mapper.Map<Product>(product));
             await _context.SaveChangesAsync();
         }
@@ -71,6 +91,26 @@ namespace ProjectLaborBackend.Services
             if (product == null)
             {
                 throw new KeyNotFoundException("Product not found!");
+            }
+
+            if (dto.EAN.Length > 20)
+            {
+                throw new ArgumentException("EAN must be 20 characters or less!");
+            }
+
+            if (await _context.Products.AnyAsync(p => p.EAN == dto.EAN))
+            {
+                throw new ArgumentException("Product with this EAN already exists!");
+            }
+
+            if (dto.Name.Length > 100)
+            {
+                throw new ArgumentException("Product name must be 100 characters or less!");
+            }
+
+            if (dto.Description.Length > 500)
+            {
+                throw new ArgumentException("Description must be 500 characters or less!");
             }
 
             _mapper.Map(dto, product);
