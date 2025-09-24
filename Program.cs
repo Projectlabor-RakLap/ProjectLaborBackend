@@ -1,11 +1,7 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.OpenApi.Models;
-using ProjectLaborBackend;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
 using ProjectLaborBackend.Entities;
-using Microsoft.EntityFrameworkCore;
-using System.Reflection;
+
 namespace ProjectLaborBackend
 {
     public class Program
@@ -21,6 +17,9 @@ namespace ProjectLaborBackend
             // Add services to the container.
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IStockChangeService, StockChangeService>();
+
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
@@ -31,8 +30,6 @@ namespace ProjectLaborBackend
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
-            builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
