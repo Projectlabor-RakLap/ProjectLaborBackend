@@ -50,13 +50,15 @@ namespace ProjectLaborBackend.Services
         
         public async Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto)
         {
-            StockChange? stockChange = await _context.StockChanges.FirstOrDefaultAsync(s => s.Id == id);
-            if (stockChange == null)
-                throw new KeyNotFoundException($"StockChange with id: {id} is not found");
+            if (stockChangeDto == null)
+                throw new ArgumentNullException("Quantity, ChangeDate or ProductId needed");
             if (stockChangeDto.ProductId != null && !_context.Products.Any(p => p.Id == stockChangeDto.ProductId))
                 throw new ArgumentException($"There is no product with id: {stockChangeDto.ProductId}");
             if (stockChangeDto.Quantity == 0)
                 throw new ArgumentException("Quantity cannot be zero");
+            StockChange? stockChange = await _context.StockChanges.FirstOrDefaultAsync(s => s.Id == id);
+            if (stockChange == null)
+                throw new KeyNotFoundException($"StockChange with id: {id} is not found");
 
             _mapper.Map(stockChangeDto, stockChange);
             _context.StockChanges.Update(stockChange);
