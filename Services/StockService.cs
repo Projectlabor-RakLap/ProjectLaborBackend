@@ -32,6 +32,16 @@ namespace ProjectLaborBackend.Services
                 throw new ArgumentOutOfRangeException("Currency cannot exceed 50 characters!");
             }
 
+            if (stock.StockInWarehouse < 0 || stock.StockInStore < 0)
+            {
+                throw new ArgumentOutOfRangeException("Stock cannot be negative!");
+            }
+
+            if (stock.WarehouseCapacity <= 0 || stock.StoreCapacity <= 0)
+            {
+                throw new ArgumentOutOfRangeException("Capacity cannot be equal or less than 0!");
+            }
+
             if (stock.StockInStore > stock.StoreCapacity && stock.StockInWarehouse > stock.WarehouseCapacity)
             {
                 throw new Exception("Stock in store and warehouse cannot exceed their capacities!");
