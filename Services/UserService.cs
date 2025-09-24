@@ -22,6 +22,9 @@ namespace ProjectLaborBackend.Services
         Task DeleteUser(int id);
         Task<UserGetDTO> ForgotUpdateUserPasswordAsync(ForgotUserPutPasswordDTO UserDTO);
         Task<UserGetDTO> UpdateUserPasswordAsync(int id, UserPutPasswordDTO UserDTO);
+        Task AssignUserWarehouseAsync(UserAssignWarehouseDTO UserDTO);
+        Task DeleteUserFromWarehouseAsync(UserAssignWarehouseDTO UserDTO);
+
     }
     public class UserService : IUserService
     {
@@ -36,13 +39,15 @@ namespace ProjectLaborBackend.Services
 
         public async Task<List<UserGetDTO>> GetUsersAsync()
         {
-            List<User> users = await context.Users.ToListAsync();
+            var users = await context.Users.Include(u => u.Warehouses).ToListAsync();
             return mapper.Map<List<UserGetDTO>>(users);
         }
 
         public async Task<UserGetDTO> GetUserByIdAsync(int id)
         {
-            var user = await context.Users.FindAsync(id);
+            var user = await context.Users
+            .Include(u => u.Warehouses) 
+            .FirstOrDefaultAsync(u => u.Id == id);
             if (user == null) throw new KeyNotFoundException("User not found");
             return mapper.Map<UserGetDTO>(user);
         }
@@ -152,6 +157,47 @@ namespace ProjectLaborBackend.Services
             await context.SaveChangesAsync();
 
             return mapper.Map<UserGetDTO>(user);
+        }
+
+        public async Task AssignUserWarehouseAsync(UserAssignWarehouseDTO UserDTO)
+        {
+            var user = await context.Users
+            .Include(u => u.Warehouses)
+            .FirstOrDefaultAsync(u => u.Id == UserDTO.userID);
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            var warehouse = await context.Warehouses
+                .Include(w => w.Users)
+                .FirstOrDefaultAsync(w => w.Id == UserDTO.warehouseID);
+
+            if (warehouse == null)
+                throw new KeyNotFoundException("Warehouse not found");
+
+            user.Warehouses.Add(warehouse);
+            warehouse.Users.Add(user);
+
+            await context.SaveChangesAsync();
+        }
+
+        public async Task DeleteUserFromWarehouseAsync(UserAssignWarehouseDTO UserDTO)
+        {
+            var user = await context.Users
+             .Include(u => u.Warehouses)
+             .FirstOrDefaultAsync(u => u.Id == UserDTO.userID);
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            var warehouse = await context.Warehouses
+                .Include(w => w.Users)
+                .FirstOrDefaultAsync(w => w.Id == UserDTO.warehouseID);
+
+            if (warehouse == null)
+                throw new KeyNotFoundException("Warehouse not found");
+
+            user.Warehouses.Remove(warehouse);
+            warehouse.Users.Remove(user);
+            await context.SaveChangesAsync();
         }
     }
 }
