@@ -44,9 +44,9 @@ namespace ProjectLaborBackend.Services
             if (!_context.Products.Any(p => p.Id == stockChangeDto.ProductId))
                 throw new ArgumentException($"There is no product with id: {stockChangeDto.ProductId}");
 
-            if (stockChangeDto.Quantity <= 0) 
+            if (stockChangeDto.Quantity == 0) 
             {
-                throw new ArgumentException("Quantity must be greater than zero!");
+                throw new ArgumentException("Quantity cannot be zero!");
             }
 
                 StockChange stockChange = _mapper.Map<StockChange>(stockChangeDto);
@@ -63,9 +63,9 @@ namespace ProjectLaborBackend.Services
             if (stockChangeDto.Quantity == 0)
                 throw new ArgumentException("Quantity cannot be zero");
 
-            if (stockChangeDto.Quantity != null && stockChangeDto.Quantity <= 0)
+            if (stockChangeDto.Quantity != null && stockChangeDto.Quantity == 0)
             {
-                throw new ArgumentException("Quantity must be greater than zero!");
+                throw new ArgumentException("Quantity cannot be zero!");
             }
 
             StockChange? stockChange = await _context.StockChanges.FirstOrDefaultAsync(s => s.Id == id);
