@@ -1,4 +1,3 @@
-using ProjectLaborBackend;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
 using ProjectLaborBackend.Entities;
@@ -17,6 +16,8 @@ namespace ProjectLaborBackend
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IWarehouseService, WarehouseService>();
             builder.Services.AddScoped<IStockService, StockService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IStockChangeService, StockChangeService>();
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
@@ -29,12 +30,23 @@ namespace ProjectLaborBackend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+            builder.Services.AddAutoMapper(cfg => { }, typeof(UserProfile));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Project Labor API v1");
+                    c.RoutePrefix = "swagger";
+                });
             }
 
             app.UseHttpsRedirection();
