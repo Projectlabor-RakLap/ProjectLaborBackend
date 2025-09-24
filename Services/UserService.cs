@@ -61,6 +61,11 @@ namespace ProjectLaborBackend.Services
                 if (u.Email == UserDTO.Email) throw new ArgumentException("Email");
             }
 
+            if (UserDTO.FirstName.Length > 75 || UserDTO.LastName.Length > 75)
+            {
+                throw new ArgumentOutOfRangeException("First and Lastname must be less than 75 characters");
+            }
+
             var user = mapper.Map<User>(UserDTO);
             user.PasswordHash = Argon2.Hash(UserDTO.Password);
 
@@ -98,6 +103,11 @@ namespace ProjectLaborBackend.Services
             if (user.Email != UserUpdateDTO.Email && await context.Users.AnyAsync(u => u.Email == UserUpdateDTO.Email))
             {
                 throw new ArgumentException("There is already another User with this email address");
+            }
+
+            if (UserUpdateDTO.Firstname != null && UserUpdateDTO.Firstname.Length > 75 || UserUpdateDTO.Lastname != null && UserUpdateDTO.Lastname.Length > 75)
+            {
+                throw new ArgumentOutOfRangeException("First and Lastname must be less than 75 characters");
             }
 
             mapper.Map(UserUpdateDTO, user);
