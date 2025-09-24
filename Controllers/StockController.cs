@@ -71,7 +71,7 @@ namespace ProjectLaborBackend.Controllers
             {
                 return BadRequest(e.Message);
             }
-            return Created();
+            return NoContent();
         }
 
         // DELETE api/<StockController>/5

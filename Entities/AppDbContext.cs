@@ -29,7 +29,7 @@ namespace ProjectLaborBackend.Entities
                 .WithMany(w => w.Users);
 
             modelBuilder.Entity<Warehouse>()
-                .HasMany(w => w.Stock)
+                .HasMany(w => w.Stocks)
                 .WithOne(s => s.Warehouse);
 
             modelBuilder.Entity<Product>()
@@ -82,7 +82,7 @@ namespace ProjectLaborBackend.Entities
         [StringLength(200)]
         public string Location { get; set; }
         public ICollection<User> Users { get; set; }
-        public ICollection<Stock> Stock { get; set; }
+        public ICollection<Stock> Stocks { get; set; }
     }
 
     public class Product

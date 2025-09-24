@@ -11,6 +11,8 @@ namespace ProjectLaborBackend.Profiles
             CreateMap<Stock, StockGetDTO>();
             CreateMap<StockCreateDTO, Stock>();
             CreateMap<StockUpdateDto, Stock>()
+                .ForMember(x => x.WarehouseId, opt => opt.Ignore())
+                .ForMember(x => x.ProductId, opt => opt.Ignore())
                 .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
