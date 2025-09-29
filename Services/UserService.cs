@@ -154,10 +154,5 @@ namespace ProjectLaborBackend.Services
 
             return mapper.Map<UserGetDTO>(user);
         }
-
-        public async void InsertOrUpdate(List<List<string>> data)
-        {
-            
-        }
     }
 }

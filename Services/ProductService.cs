@@ -88,7 +88,7 @@ namespace ProjectLaborBackend.Services
 
         public async Task InsertOrUpdate(List<List<string>> data)
         {
-            List<Product> currentProducts = await _context.Products.ToListAsync();
+            List<Product> currentProducts = _context.Products.ToList();
             List<Product> productsFromExcel = new List<Product>();
             List<Product> productsToAdd = new List<Product>();
             List<Product> productsToUpdate = new List<Product>();
@@ -119,15 +119,15 @@ namespace ProjectLaborBackend.Services
 
             if (productsToAdd.Count > 0)
             {
-                await _context.Products.AddRangeAsync(productsToAdd);
+                _context.Products.AddRange(productsToAdd);
             }
             if (productsToUpdate.Count > 0)
             {
-                 _context.Products.UpdateRange(productsToUpdate);
+                _context.Products.UpdateRange(productsToUpdate);
             }
             try
             {
-                 await _context.SaveChangesAsync();
+                _context.SaveChanges();
             }
             catch (DbUpdateConcurrencyException)
             {
