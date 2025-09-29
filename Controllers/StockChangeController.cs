@@ -41,6 +41,24 @@ namespace ProjectLaborBackend.Controllers
             }
         }
 
+        [HttpGet("calculate-moving-average/{window}")]
+        public async Task<ActionResult<double>> CalculateMovingAverage(int productId, int window)
+        {
+            try
+            {
+                double movingAverage = await _service.CalculateMovingAveragePriceAsync(productId, window);
+                return Ok($"Moving average for a window size of {window}: " + movingAverage);
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         // PUT: api/StockChanges/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPatch("{id}")]

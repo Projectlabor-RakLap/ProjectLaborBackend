@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProjectLaborBackend.Dtos.StockChange;
 using ProjectLaborBackend.Entities;
+using System.Linq;
 namespace ProjectLaborBackend.Services
 {
     public interface IStockChangeService
@@ -11,6 +12,7 @@ namespace ProjectLaborBackend.Services
         Task CreateStockChangeAsync(StockChangeCreateDTO stockChangeDto);
         Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto);
         Task DeleteStockChangeAsync(int id);
+        Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize);
     }
     public class StockChangeService : IStockChangeService
     {
@@ -98,6 +100,39 @@ namespace ProjectLaborBackend.Services
                 throw new KeyNotFoundException($"StockChange with id: {id} is not found");
             _context.StockChanges.Remove(stockChange);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize)
+        {
+            if (!_context.Products.Any(p => p.Id == productId))
+            {
+                throw new ArgumentException($"There is no product with id: {productId}");
+            }
+
+            var changes = await _context.StockChanges
+                .Where(sc => sc.ProductId == productId && sc.Quantity < 0)
+                .OrderByDescending(sc => sc.ChangeDate)
+                .Take(windowSize)
+                .ToListAsync();
+
+            if (windowSize <= 0)
+            {
+                throw new ArgumentException($"Window must be positive and not 0!");
+            }
+
+            if (changes.Count < windowSize)
+            {
+                throw new Exception($"Not enough stock changes to calculate moving average for product with id: {productId}");
+            }
+
+            double average = Math.Abs(await _context.StockChanges
+                .Where(sc => sc.ProductId == productId && sc.Quantity < 0)
+                .OrderByDescending(sc => sc.ChangeDate)
+                .Take(windowSize)
+                .AverageAsync(sc => sc.Quantity));
+
+
+            return average;
         }
     }
 }
