@@ -116,5 +116,29 @@ namespace ProjectLaborBackend.Controllers
             catch (KeyNotFoundException e) { return NotFound(e.Message); }
             catch (Exception e) { return BadRequest(e.Message); }
         }
+
+        [HttpPut("assign-user-warehouse")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignWarehouseToUser([FromBody] UserAssignWarehouseDTO userDTO)
+        {
+            try
+            {
+                await userService.AssignUserWarehouseAsync(userDTO);
+                return Ok(userDTO);
+            }
+            catch (Exception e) { return BadRequest(e.Message); }
+        }
+
+        [HttpDelete("assign-user-warehouse")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteWarehouseFromUser([FromBody] UserAssignWarehouseDTO userDTO)
+        {
+            try
+            {
+                await userService.DeleteUserFromWarehouseAsync(userDTO);
+                return Ok(userDTO);
+            }
+            catch (Exception e) { return BadRequest(e.Message); }
+        }
     }
 }

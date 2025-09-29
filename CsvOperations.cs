@@ -83,10 +83,10 @@ namespace ProjectLaborBackend
                     int colCount = worksheet.Dimension.End.Column;
                     int rowCount = worksheet.Dimension.End.Row;
 
-                    for (int i = 1; i < rowCount; i++)
+                    for (int i = 2; i < rowCount+1; i++)
                     {
                         List<string> row = new List<string>();
-                        for (int j = 1; j < colCount; j++)
+                        for (int j = 2; j < colCount+1; j++)
                         {
                             // Read each cell value and add to the row list
                             if (!string.IsNullOrWhiteSpace(worksheet.Cells[i, j].Text))

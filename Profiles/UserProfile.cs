@@ -13,7 +13,7 @@ namespace ProjectLaborBackend.Profiles
             CreateMap<UserPutDTO, User>();
             CreateMap<ForgotUserPutPasswordDTO, User>();
             CreateMap<UserPutPasswordDTO, User>().ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.NewPassword));
-            CreateMap<User, UserGetDTO>();
+            CreateMap<User, UserGetDTO>().ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouses.Select(w => w.Name)));
         }
     }
 }

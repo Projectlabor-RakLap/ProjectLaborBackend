@@ -11,7 +11,7 @@ namespace ProjectLaborBackend.Services
         Task CreateStockChangeAsync(StockChangeCreateDTO stockChangeDto);
         Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto);
         Task DeleteStockChangeAsync(int id);
-        Task InsertOrUpdate(List<List<string>> data);
+        void InsertOrUpdate(List<List<string>> data);
     }
     public class StockChangeService : IStockChangeService
     {
@@ -44,7 +44,13 @@ namespace ProjectLaborBackend.Services
                 throw new ArgumentNullException("Quantity, ChangeDate or ProductId needed");
             if (!_context.Products.Any(p => p.Id == stockChangeDto.ProductId))
                 throw new ArgumentException($"There is no product with id: {stockChangeDto.ProductId}");
-            StockChange stockChange = _mapper.Map<StockChange>(stockChangeDto);
+
+            if (stockChangeDto.Quantity == 0) 
+            {
+                throw new ArgumentException("Quantity cannot be zero!");
+            }
+
+                StockChange stockChange = _mapper.Map<StockChange>(stockChangeDto);
             await _context.StockChanges.AddAsync(stockChange);
             await _context.SaveChangesAsync();
         }
@@ -57,6 +63,12 @@ namespace ProjectLaborBackend.Services
                 throw new ArgumentException($"There is no product with id: {stockChangeDto.ProductId}");
             if (stockChangeDto.Quantity == 0)
                 throw new ArgumentException("Quantity cannot be zero");
+
+            if (stockChangeDto.Quantity != null && stockChangeDto.Quantity == 0)
+            {
+                throw new ArgumentException("Quantity cannot be zero!");
+            }
+
             StockChange? stockChange = await _context.StockChanges.FirstOrDefaultAsync(s => s.Id == id);
             if (stockChange == null)
                 throw new KeyNotFoundException($"StockChange with id: {id} is not found");
@@ -89,7 +101,7 @@ namespace ProjectLaborBackend.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task InsertOrUpdate(List<List<string>> data)
+        public void InsertOrUpdate(List<List<string>> data)
         {
             List<StockChange> currentStockChange = _context.StockChanges.ToList();
             List<StockChange> StockChangeFromExcel = new List<StockChange>();
@@ -104,6 +116,16 @@ namespace ProjectLaborBackend.Services
                     ProductId = Convert.ToInt32(item[2]),
                 });
             }
+
+            if (StockChangeFromExcel.Count == 0)
+                throw new ArgumentNullException("No data was read");
+            if (StockChangeFromExcel.Any(p => p.ProductId == 0))
+                throw new ArgumentException("ProductId cannot be zero!");
+            if (StockChangeFromExcel.Any(p => !_context.Products.Any(prod => prod.Id == p.ProductId)))
+                throw new ArgumentException("There is no product with one of the given ProductIds!");
+            if (StockChangeFromExcel.Any(p => p.Quantity == 0))
+                throw new ArgumentException("Quantity cannot be zero!");
+
             foreach (StockChange stockChange in StockChangeFromExcel)
             {
                 if (!currentStockChange.Any(p => p.Id == stockChange.Id))
@@ -121,7 +143,7 @@ namespace ProjectLaborBackend.Services
 
             if (StockChangeToAdd.Count > 0)
             {
-                await _context.StockChanges.AddRangeAsync(StockChangeToAdd);
+                _context.StockChanges.AddRangec(StockChangeToAdd);
             }
             if (StockChangeToUpdate.Count > 0)
             {

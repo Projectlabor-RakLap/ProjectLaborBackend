@@ -12,13 +12,15 @@ namespace ProjectLaborBackend.Controllers
         CsvOperations csvOperations;
         private IProductService productService;
         private IStockChangeService stockChangeService;
+        private IStockService stockService;
         private IWarehouseService warehouseService;
 
-        public ExcelController(IProductService productService, IStockChangeService stockChangeService, IWarehouseService warehouseService)
+        public ExcelController(IProductService productService, IStockChangeService stockChangeService, IWarehouseService warehouseService, IStockService stockService)
         {
             this.productService = productService;
             this.stockChangeService = stockChangeService;
             this.warehouseService = warehouseService;
+            this.stockService = stockService;
 
             csvOperations = new CsvOperations();
         }
@@ -70,7 +72,7 @@ namespace ProjectLaborBackend.Controllers
                 switch (table)
                 {
                     case AppDbContext.Tables.Products:
-                        _ = productService.InsertOrUpdate(_dataFromExcel);
+                        productService.InsertOrUpdate(_dataFromExcel);
                         break;
 
                     case AppDbContext.Tables.StockChanges:
@@ -79,7 +81,11 @@ namespace ProjectLaborBackend.Controllers
 
                     case AppDbContext.Tables.Warehouses:
                         warehouseService.InsertOrUpdate(_dataFromExcel);
-                        break;       
+                        break;
+
+                    case AppDbContext.Tables.Stocks:
+                        stockService.InsertOrUpdate(_dataFromExcel);
+                        break;
 
                     default:
                         throw new ArgumentOutOfRangeException(nameof(table), "Unsupported table for import");
@@ -91,7 +97,7 @@ namespace ProjectLaborBackend.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest("Database error: " + e.InnerException);
+                return BadRequest($"{e.Message}, {e.StackTrace}");// "Database error: " + e.Message);
             }
             return Ok("Imported");
         }

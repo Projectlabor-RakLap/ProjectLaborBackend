@@ -3,6 +3,7 @@ using ProjectLaborBackend.Controllers;
 using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
+using ProjectLaborBackend.Entities;
 
 namespace ProjectLaborBackend
 {
@@ -18,6 +19,7 @@ namespace ProjectLaborBackend
             // Add services to the container.
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+            builder.Services.AddScoped<IStockService, StockService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IStockChangeService, StockChangeService>();
 
@@ -27,6 +29,7 @@ namespace ProjectLaborBackend
             //Automapper maps
             builder.Services.AddAutoMapper(cfg => { }, typeof(ProductProfile));
             builder.Services.AddAutoMapper(cfg => { }, typeof(WarehouseProfile));
+            builder.Services.AddAutoMapper(cfg => { }, typeof(StockProfile));
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

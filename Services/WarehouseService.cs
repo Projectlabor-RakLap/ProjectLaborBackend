@@ -13,7 +13,7 @@ namespace ProjectLaborBackend.Services
         Task CreateWarehouseAsync(WarehousePostDTO warehouseDto);
         Task PatchWarehouseAsync(int id, WarehouseUpdateDTO warehouseDto);
         Task DeleteWarehouseAsync(int id);
-        Task InsertOrUpdate(List<List<string>> data);
+        void InsertOrUpdate(List<List<string>> data);
     }
 
     public class WarehouseService : IWarehouseService
@@ -47,6 +47,16 @@ namespace ProjectLaborBackend.Services
             if (_context.Warehouses.Any(x => x.Location == warehouseDto.Location))
                 throw new ArgumentException($"There is already an existing warehouse with location: {warehouseDto.Location}");
 
+            if (warehouseDto.Name.Length > 100)
+            {
+                throw new ArgumentOutOfRangeException("Name cannot exceed 100 characters!");
+            }
+
+            if (warehouseDto.Location.Length > 200)
+            {
+                throw new ArgumentOutOfRangeException("Location cannot exceed 200 characters!");
+            }
+
             Warehouse wareHouse = _mapper.Map<Warehouse>(warehouseDto);
             await _context.Warehouses.AddAsync(wareHouse);
             await _context.SaveChangesAsync();
@@ -72,6 +82,16 @@ namespace ProjectLaborBackend.Services
             if(warehouseDto.Location != null && _context.Warehouses.Any(x => x.Location == warehouseDto.Location && x.Id != id))
                 throw new ArgumentException($"There is already an existing warehouse with location: {warehouseDto.Location}");
 
+            if (warehouseDto.Name != null && warehouseDto.Name.Length > 100)
+            {
+                throw new ArgumentOutOfRangeException("Name cannot exceed 100 characters!");
+            }
+
+            if (warehouseDto.Location != null && warehouseDto.Location.Length > 200)
+            {
+                throw new ArgumentOutOfRangeException("Location cannot exceed 200 characters!");
+            }
+
             _mapper.Map(warehouseDto, wareHouse);
 
             try
@@ -91,7 +111,7 @@ namespace ProjectLaborBackend.Services
             }
         }
 
-        public async Task InsertOrUpdate(List<List<string>> data)
+        public void InsertOrUpdate(List<List<string>> data)
         {
             List<Warehouse> currentWareHouse = _context.Warehouses.ToList();
             List<Warehouse> StockChangeFromExcel = new List<Warehouse>();
@@ -105,6 +125,16 @@ namespace ProjectLaborBackend.Services
                     Location = item[1],
                 });
             }
+            
+            if (StockChangeFromExcel.Count == 0)
+                throw new ArgumentException("No data found in the Excel file.");
+            if (StockChangeFromExcel.Any(p => p.Name.Length > 100))
+                throw new ArgumentException("Name cannot exceed 100 characters!");
+            if (StockChangeFromExcel.Any(p => p.Location.Length > 200))
+                throw new ArgumentException("Location cannot exceed 200 characters!");
+            if (StockChangeFromExcel.GroupBy(p => p.Location).Any(g => g.Count() > 1))
+                throw new ArgumentException("There are duplicate locations in the Excel file!");
+
             foreach (Warehouse stockChange in StockChangeFromExcel)
             {
                 if (!currentWareHouse.Any(p => p.Id == stockChange.Id))
@@ -122,7 +152,7 @@ namespace ProjectLaborBackend.Services
 
             if (StockChangeToAdd.Count > 0)
             {
-                await _context.Warehouses.AddRangeAsync(StockChangeToAdd);
+                _context.Warehouses.AddRange(StockChangeToAdd);
             }
             if (WareHouseToUpdate.Count > 0)
             {
