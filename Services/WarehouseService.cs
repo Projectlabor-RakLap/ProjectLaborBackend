@@ -2,6 +2,7 @@
 using ProjectLaborBackend.Entities;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using System.Threading.Tasks;
 
 namespace ProjectLaborBackend.Services
 {
@@ -12,6 +13,7 @@ namespace ProjectLaborBackend.Services
         Task CreateWarehouseAsync(WarehousePostDTO warehouseDto);
         Task PatchWarehouseAsync(int id, WarehouseUpdateDTO warehouseDto);
         Task DeleteWarehouseAsync(int id);
+        void InsertOrUpdate(List<List<string>> data);
     }
 
     public class WarehouseService : IWarehouseService
@@ -109,6 +111,62 @@ namespace ProjectLaborBackend.Services
             }
         }
 
+        public void InsertOrUpdate(List<List<string>> data)
+        {
+            List<Warehouse> currentWareHouse = _context.Warehouses.ToList();
+            List<Warehouse> StockChangeFromExcel = new List<Warehouse>();
+            List<Warehouse> StockChangeToAdd = new List<Warehouse>();
+            List<Warehouse> WareHouseToUpdate = new List<Warehouse>();
+            foreach (List<string> item in data)
+            {
+                StockChangeFromExcel.Add(new Warehouse
+                {
+                    Name = item[0],
+                    Location = item[1],
+                });
+            }
+            
+            if (StockChangeFromExcel.Count == 0)
+                throw new ArgumentException("No data found in the Excel file.");
+            if (StockChangeFromExcel.Any(p => p.Name.Length > 100))
+                throw new ArgumentException("Name cannot exceed 100 characters!");
+            if (StockChangeFromExcel.Any(p => p.Location.Length > 200))
+                throw new ArgumentException("Location cannot exceed 200 characters!");
+            if (StockChangeFromExcel.GroupBy(p => p.Location).Any(g => g.Count() > 1))
+                throw new ArgumentException("There are duplicate locations in the Excel file!");
+
+            foreach (Warehouse stockChange in StockChangeFromExcel)
+            {
+                if (!currentWareHouse.Any(p => p.Id == stockChange.Id))
+                {
+                    StockChangeToAdd.Add(stockChange);
+                }
+                else
+                {
+                    Warehouse existingWareHouse = currentWareHouse.First(p => p.Id == stockChange.Id);
+                    existingWareHouse.Name = stockChange.Name;
+                    existingWareHouse.Location = stockChange.Location;
+                    WareHouseToUpdate.Add(existingWareHouse);
+                }
+            }
+
+            if (StockChangeToAdd.Count > 0)
+            {
+                _context.Warehouses.AddRange(StockChangeToAdd);
+            }
+            if (WareHouseToUpdate.Count > 0)
+            {
+                _context.Warehouses.UpdateRange(WareHouseToUpdate);
+            }
+            try
+            {
+                _context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
+        }
         private bool WarehouseExists(int id)
         {
             return _context.Warehouses.Any(e => e.Id == id);

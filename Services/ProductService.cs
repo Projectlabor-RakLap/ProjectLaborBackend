@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using ProjectLaborBackend.Dtos.Product;
 using ProjectLaborBackend.Entities;
 
@@ -13,6 +14,7 @@ namespace ProjectLaborBackend.Services
         Task CreateProductAsync(ProductCreateDTO product);
         Task UpdateProductAsync(int id, ProductUpdateDTO dto);
         Task DeleteProductAsync(int id);
+        void InsertOrUpdate(List<List<string>> data);
     }
 
     public class ProductService : IProductService
@@ -54,7 +56,7 @@ namespace ProjectLaborBackend.Services
 
         public async Task DeleteProductAsync(int id)
         {
-            Product product = await _context.Products.FindAsync(id);
+            Product? product = await _context.Products.FindAsync(id);
             if (product == null)
             {
                 throw new KeyNotFoundException("Product not found");
@@ -71,7 +73,7 @@ namespace ProjectLaborBackend.Services
 
         public async Task<ProductGetDTO?> GetProductByIdAsync(int id)
         {
-            Product product = await _context.Products.FindAsync(id);
+            Product? product = await _context.Products.FindAsync(id);
             if (product == null)
             {
                 throw new KeyNotFoundException("Product not found!");
@@ -122,6 +124,69 @@ namespace ProjectLaborBackend.Services
             catch (DbUpdateConcurrencyException)
             {
                 throw;
+            }
+        }
+
+        public void InsertOrUpdate(List<List<string>> data)
+        {
+            List<Product> currentProducts = _context.Products.ToList();
+            List<Product> productsFromExcel = new List<Product>();
+            List<Product> productsToAdd = new List<Product>();
+            List<Product> productsToUpdate = new List<Product>();
+            foreach (List<string> item in data)
+            {
+                productsFromExcel.Add(new Product
+                {
+                    EAN = item[0],
+                    Name = item[1],
+                    Description = item[2],
+                    Image = "temp"
+                });
+            }
+
+            if (productsFromExcel.Count == 0)
+                throw new ArgumentNullException("No data was read");
+            if (productsFromExcel.Any(p => p.EAN.Length > 20))
+                throw new ArgumentException("Ean cant be longer than 20 cahrs");
+            if(productsFromExcel.Any(p => p.Name.Length > 100))
+                throw new ArgumentException("Name cant be longer than 100 cahrs");
+            if(productsFromExcel.Any(p => p.Description.Length > 500))
+                throw new ArgumentException("Description cant be longer than 500 cahrs");
+
+            foreach (Product product in productsFromExcel)
+            {
+                if (!currentProducts.Any(p => p.EAN == product.EAN))
+                {
+                    productsToAdd.Add(product);
+                }
+                else
+                {
+                    Product existingProduct = currentProducts.First(p => p.EAN == product.EAN);
+                    existingProduct.Name = product.Name;
+                    existingProduct.Description = product.Description;
+                    productsToUpdate.Add(existingProduct);
+                }
+            }
+
+            if (productsToAdd.Count > 0)
+            {
+                _context.Products.AddRange(productsToAdd);
+            }
+            if (productsToUpdate.Count > 0)
+            {
+                _context.Products.UpdateRange(productsToUpdate);
+            }
+            try
+            {
+                _context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while saving changes to the database.", ex);
             }
         }
     }

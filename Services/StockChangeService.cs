@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ProjectLaborBackend.Dtos.StockChange;
 using ProjectLaborBackend.Entities;
@@ -12,6 +12,7 @@ namespace ProjectLaborBackend.Services
         Task CreateStockChangeAsync(StockChangeCreateDTO stockChangeDto);
         Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto);
         Task DeleteStockChangeAsync(int id);
+        void InsertOrUpdate(List<List<string>> data);
         Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize);
     }
     public class StockChangeService : IStockChangeService
@@ -102,6 +103,62 @@ namespace ProjectLaborBackend.Services
             await _context.SaveChangesAsync();
         }
 
+        public void InsertOrUpdate(List<List<string>> data)
+        {
+            List<StockChange> currentStockChange = _context.StockChanges.ToList();
+            List<StockChange> StockChangeFromExcel = new List<StockChange>();
+            List<StockChange> StockChangeToAdd = new List<StockChange>();
+            List<StockChange> StockChangeToUpdate = new List<StockChange>();
+            foreach (List<string> item in data)
+            {
+                StockChangeFromExcel.Add(new StockChange
+                {
+                    Quantity = Convert.ToInt32(item[0]),
+                    ChangeDate = Convert.ToDateTime(item[1]),
+                    ProductId = Convert.ToInt32(item[2]),
+                });
+            }
+
+            if (StockChangeFromExcel.Count == 0)
+                throw new ArgumentNullException("No data was read");
+            if (StockChangeFromExcel.Any(p => p.ProductId == 0))
+                throw new ArgumentException("ProductId cannot be zero!");
+            if (StockChangeFromExcel.Any(p => !_context.Products.Any(prod => prod.Id == p.ProductId)))
+                throw new ArgumentException("There is no product with one of the given ProductIds!");
+            if (StockChangeFromExcel.Any(p => p.Quantity == 0))
+                throw new ArgumentException("Quantity cannot be zero!");
+
+            foreach (StockChange stockChange in StockChangeFromExcel)
+            {
+                if (!currentStockChange.Any(p => p.Id == stockChange.Id))
+                {
+                    StockChangeToAdd.Add(stockChange);
+                }
+                else
+                {
+                    StockChange existingStockChange = currentStockChange.First(p => p.Id == stockChange.Id);
+                    existingStockChange.Quantity = stockChange.Quantity;
+                    existingStockChange.ProductId = stockChange.ProductId;
+                    StockChangeToUpdate.Add(existingStockChange);
+                }
+            }
+
+            if (StockChangeToAdd.Count > 0)
+            {
+                _context.StockChanges.AddRangec(StockChangeToAdd);
+            }
+            if (StockChangeToUpdate.Count > 0)
+            {
+                _context.StockChanges.UpdateRange(StockChangeToUpdate);
+            }
+            try
+            {
+                 _context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
         public async Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize)
         {
             if (!_context.Products.Any(p => p.Id == productId))

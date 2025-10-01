@@ -12,6 +12,7 @@ namespace ProjectLaborBackend.Services
         Task CreateStockAsync(StockCreateDTO stock);
         Task UpdateStockAsync(int id, StockUpdateDto dto);
         Task DeleteStockAsync(int id);
+        void InsertOrUpdate(List<List<string>> data);
     }
 
     public class StockService : IStockService
@@ -186,6 +187,111 @@ namespace ProjectLaborBackend.Services
             catch (Exception ex)
             {
                 throw new Exception(ex.Message + "\n" + ex.InnerException.Message);
+            }
+        }
+        public void InsertOrUpdate(List<List<string>> data)
+        {
+            List<Stock> currentStock = _context.Stocks.ToList();
+            List<Stock> stocksFromExcel = new List<Stock>();
+            List<Stock> stocksToAdd = new List<Stock>();
+            List<Stock> stocksToUpdate = new List<Stock>();
+            foreach (List<string> item in data)
+            {
+                stocksFromExcel.Add(new Stock
+                {
+                    StockInWarehouse = int.Parse(item[0]),
+                    StockInStore = int.Parse(item[1]),
+                    WarehouseCapacity = int.Parse(item[2]),
+                    StoreCapacity = int.Parse(item[3]),
+                    ProductId = int.Parse(item[4]),
+                    Currency = item[5],
+                    Price = double.Parse(item[6]),
+                    WarehouseId = int.Parse(item[7])
+                });
+            }
+            if(stocksFromExcel.Count == 0)
+            {
+                throw new ArgumentNullException("No data to be changed!");
+            }
+            if (stocksFromExcel.Any(s => s.Currency.Length > 50))
+            {
+                throw new ArgumentOutOfRangeException("Currency cannot exceed 50 characters!");
+            }
+            if (stocksFromExcel.Any(s => s.StockInWarehouse < 0 || s.StockInStore < 0))
+            {
+                throw new ArgumentOutOfRangeException("Stock cannot be negative!");
+            }
+            if (stocksFromExcel.Any(s => s.WarehouseCapacity <= 0 || s.StoreCapacity <= 0))
+            {
+                throw new ArgumentOutOfRangeException("Capacity cannot be equal or less than 0!");
+            }
+            if (stocksFromExcel.Any(s => s.StockInStore > s.StoreCapacity && s.StockInWarehouse > s.WarehouseCapacity))
+            {
+                throw new Exception("Stock in store and warehouse cannot exceed their capacities!");
+            }
+            if (stocksFromExcel.Any(s => !_context.Warehouses.Any(w => w.Id == s.WarehouseId)))
+            {
+                throw new KeyNotFoundException("One or more warehouses with given ids do not exist!");
+            }
+            if (stocksFromExcel.Any(s => !_context.Products.Any(p => p.Id == s.ProductId)))
+            {
+                throw new KeyNotFoundException("One or more products with given ids do not exist!");
+            }
+            if (stocksFromExcel.Any(s => currentStock.Count(cs => cs.ProductId == s.ProductId) > 1))
+            {
+                throw new Exception("There are duplicate products in the database!");
+            }
+            if (stocksFromExcel.Any(s => stocksFromExcel.Count(cs => cs.ProductId == s.ProductId) > 1))
+            {
+                throw new Exception("There are duplicate products in the imported data!");
+            }
+            if (stocksFromExcel.Any(s => currentStock.Any(cs => cs.ProductId == s.ProductId && (s.StockInStore < 0 || s.StockInWarehouse < 0))))
+            {
+                throw new Exception("Stock in store or warehouse cannot be negative!");
+            }
+            if (stocksFromExcel.Any(s => currentStock.Any(cs => cs.ProductId == s.ProductId && s.Price < 0)))
+            {
+                throw new ArgumentOutOfRangeException("Price cannot be negative!");
+            }
+
+            foreach (Stock stock in stocksFromExcel)
+            {
+                if (!currentStock.Any(p => p.ProductId == stock.ProductId))
+                {
+                    stocksToAdd.Add(stock);
+                }
+                else
+                {
+                    Stock existingStock = currentStock.First(p => p.ProductId == stock.ProductId);
+                    existingStock.StockInStore = stock.StockInStore;
+                    existingStock.StockInWarehouse = stock.StockInWarehouse;
+                    existingStock.StoreCapacity = stock.StoreCapacity;
+                    existingStock.WarehouseCapacity = stock.WarehouseCapacity;
+                    existingStock.Price = stock.Price;
+                    existingStock.Currency = stock.Currency;
+                    stocksToUpdate.Add(existingStock);
+                }
+            }
+
+            if (stocksToAdd.Count > 0)
+            {
+                _context.Stocks.AddRange(stocksToAdd);
+            }
+            if (stocksToUpdate.Count > 0)
+            {
+                _context.Stocks.UpdateRange(stocksToUpdate);
+            }
+            try
+            {
+                _context.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while saving changes to the database.", ex);
             }
         }
     }

@@ -1,6 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+using ProjectLaborBackend.Controllers;
+using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
 using ProjectLaborBackend.Entities;
+
 namespace ProjectLaborBackend
 {
     public class Program

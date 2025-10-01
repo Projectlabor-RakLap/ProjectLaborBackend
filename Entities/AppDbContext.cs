@@ -14,6 +14,16 @@ namespace ProjectLaborBackend.Entities
         public DbSet<Product> Products { get; set; }
         public DbSet<StockChange> StockChanges { get; set; }
 
+        public enum Tables
+        {
+            Products,
+            StockChanges,
+            Stocks,
+            Users,
+            UserWarehouse,
+            Warehouses
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             DotNetEnv.Env.Load();
