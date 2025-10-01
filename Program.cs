@@ -1,6 +1,8 @@
+using ProjectLaborBackend.Email;
+using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
-using ProjectLaborBackend.Entities;
+using System.Diagnostics;
 namespace ProjectLaborBackend
 {
     public class Program
@@ -18,6 +20,9 @@ namespace ProjectLaborBackend
             builder.Services.AddScoped<IStockService, StockService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IStockChangeService, StockChangeService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
+            builder.Services.AddFluentEmail(builder.Configuration);
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
