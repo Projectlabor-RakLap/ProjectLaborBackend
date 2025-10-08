@@ -15,6 +15,7 @@ namespace ProjectLaborBackend.Services
         Task UpdateProductAsync(int id, ProductUpdateDTO dto);
         Task DeleteProductAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
+        Task<List<ProductGetDTO>> GetAllProductsByWarehouseAsync(string warehouse);
     }
 
     public class ProductService : IProductService
@@ -188,6 +189,17 @@ namespace ProjectLaborBackend.Services
             {
                 throw new Exception("An error occurred while saving changes to the database.", ex);
             }
+        }
+
+        public async Task<List<ProductGetDTO>> GetAllProductsByWarehouseAsync(string warehouse)
+        {
+            var products = await _context.Products
+        .Where(p => p.Stocks.Any(s => s.Warehouse.Name == warehouse))
+        .Include(p => p.Stocks)
+        .ThenInclude(s => s.Warehouse)
+        .ToListAsync();
+
+            return _mapper.Map<List<ProductGetDTO>>(products);
         }
     }
 }

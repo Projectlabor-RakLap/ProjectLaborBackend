@@ -128,5 +128,11 @@ namespace ProjectLaborBackend.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("warehouse-product/{product}-{warehouse}")]
+        public async Task<List<StockChangeGetDTO>> GetAllStockchangeByWarehouseProduct(string product, string warehouse)
+        {
+            return await _service.GetAllStockChangeByWarehouseAsync(product, warehouse);
+        }
     }
 }
