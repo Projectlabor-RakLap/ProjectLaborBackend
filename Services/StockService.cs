@@ -13,6 +13,7 @@ namespace ProjectLaborBackend.Services
         Task UpdateStockAsync(int id, StockUpdateDto dto);
         Task DeleteStockAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
+        Task UpdateStockAfterStockChange(int stockId, int warehouseId, int quantity);
     }
 
     public class StockService : IStockService
@@ -292,6 +293,31 @@ namespace ProjectLaborBackend.Services
             catch (Exception ex)
             {
                 throw new Exception("An error occurred while saving changes to the database.", ex);
+            }
+        }
+
+        public async Task UpdateStockAfterStockChange(int productId, int warehouseId, int quantity)
+        {
+            Stock stock = await _context.Stocks.FirstOrDefaultAsync(s => s.ProductId == productId && s.WarehouseId == warehouseId);
+            if (stock == null)
+            {
+                throw new KeyNotFoundException("Stock not found!");
+            }
+
+            if (stock.StockInWarehouse + quantity < 0)
+            {
+                throw new ArgumentOutOfRangeException("Stock in warehouse cannot be negative!");
+            }
+
+            stock.StockInWarehouse += quantity;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + "\n" + ex.InnerException.Message);
             }
         }
     }

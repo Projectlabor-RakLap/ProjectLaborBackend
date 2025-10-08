@@ -41,12 +41,12 @@ namespace ProjectLaborBackend.Controllers
             }
         }
 
-        [HttpGet("calculate-moving-average/{window}")]
-        public async Task<ActionResult<double>> CalculateMovingAverage(int productId, int window)
+        [HttpGet("calculate-moving-average/{productId}")]
+        public async Task<ActionResult<double>> CalculateMovingAverage(int productId, [FromQuery(Name = "warehouseId")] int warehouseId, [FromQuery(Name = "window")] int window)
         {
             try
             {
-                double movingAverage = await _service.CalculateMovingAveragePriceAsync(productId, window);
+                double movingAverage = await _service.CalculateMovingAverageQuantityAsync(productId, warehouseId , window);
                 return Ok($"Moving average for a window size of {window}: " + movingAverage);
             }
             catch (ArgumentException e)
