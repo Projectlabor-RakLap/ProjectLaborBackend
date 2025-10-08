@@ -145,7 +145,7 @@ namespace ProjectLaborBackend.Services
 
             if (StockChangeToAdd.Count > 0)
             {
-                _context.StockChanges.AddRangec(StockChangeToAdd);
+                _context.StockChanges.AddRange(StockChangeToAdd);
             }
             if (StockChangeToUpdate.Count > 0)
             {
@@ -153,12 +153,13 @@ namespace ProjectLaborBackend.Services
             }
             try
             {
-                 _context.SaveChanges();
+                _context.SaveChanges();
             }
             catch (DbUpdateConcurrencyException)
             {
                 throw;
             }
+        }
         public async Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize)
         {
             if (!_context.Products.Any(p => p.Id == productId))
