@@ -34,8 +34,18 @@ namespace ProjectLaborBackend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowLocalhost", policy =>
+                {
+                    policy.WithOrigins(
+                            "http://localhost:3000",
+                            "https://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
 
             builder.Services.AddAutoMapper(cfg => { }, typeof(UserProfile));
 
@@ -58,8 +68,10 @@ namespace ProjectLaborBackend
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseAuthorization();
+            app.UseCors("AllowLocalhost");
 
+            app.UseAuthorization();
+            
 
             app.MapControllers();
 
