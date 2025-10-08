@@ -13,6 +13,7 @@ namespace ProjectLaborBackend.Services
         Task UpdateStockAsync(int id, StockUpdateDto dto);
         Task DeleteStockAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
+        Task<StockGetDTO?> GetStockByProductNameAsync(string product);
     }
 
     public class StockService : IStockService
@@ -293,6 +294,17 @@ namespace ProjectLaborBackend.Services
             {
                 throw new Exception("An error occurred while saving changes to the database.", ex);
             }
+        }
+
+        public async Task<StockGetDTO?> GetStockByProductNameAsync(string product)
+        {
+            Stock? stock = await _context.Stocks.Include("Product").Where(x => x.Product.Name == product).FirstOrDefaultAsync();
+            if (stock == null)
+            {
+                throw new KeyNotFoundException("Stock not found!");
+            }
+
+            return _mapper.Map<StockGetDTO>(stock);
         }
     }
 }

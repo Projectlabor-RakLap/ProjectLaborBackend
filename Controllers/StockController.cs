@@ -95,5 +95,18 @@ namespace ProjectLaborBackend.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("product/{product}")]
+        public async Task<ActionResult<StockGetDTO?>> GetStockByProductName(string product)
+        {
+            try
+            {
+                return await _stockService.GetStockByProductNameAsync(product);
+            }
+            catch (KeyNotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
     }
 }
