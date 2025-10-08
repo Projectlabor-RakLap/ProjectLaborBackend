@@ -15,6 +15,7 @@ namespace ProjectLaborBackend.Services
         void InsertOrUpdate(List<List<string>> data);
         Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize);
         Task<List<StockChangeGetDTO>> GetAllStockChangeByWarehouseAsync(string product, string warehouse);
+        Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(string warehouse);
     }
     public class StockChangeService : IStockChangeService
     {
@@ -40,7 +41,7 @@ namespace ProjectLaborBackend.Services
             var stockChanges = await _context.StockChanges.ToListAsync();
             return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
         }
-        
+
         public async Task CreateStockChangeAsync(StockChangeCreateDTO stockChangeDto)
         {
             if (stockChangeDto == null)
@@ -48,16 +49,16 @@ namespace ProjectLaborBackend.Services
             if (!_context.Products.Any(p => p.Id == stockChangeDto.ProductId))
                 throw new ArgumentException($"There is no product with id: {stockChangeDto.ProductId}");
 
-            if (stockChangeDto.Quantity == 0) 
+            if (stockChangeDto.Quantity == 0)
             {
                 throw new ArgumentException("Quantity cannot be zero!");
             }
 
-                StockChange stockChange = _mapper.Map<StockChange>(stockChangeDto);
+            StockChange stockChange = _mapper.Map<StockChange>(stockChangeDto);
             await _context.StockChanges.AddAsync(stockChange);
             await _context.SaveChangesAsync();
         }
-        
+
         public async Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto)
         {
             if (stockChangeDto == null)
@@ -94,7 +95,7 @@ namespace ProjectLaborBackend.Services
                 }
             }
         }
-        
+
         public async Task DeleteStockChangeAsync(int id)
         {
             StockChange? stockChange = await _context.StockChanges.FirstOrDefaultAsync(s => s.Id == id);
@@ -200,6 +201,22 @@ namespace ProjectLaborBackend.Services
                 .Include(sc => sc.Product)
                 .Where(sc => sc.Product.Name == product)
                 .Where(sc => sc.Product.Stocks.Any(s => s.Warehouse.Name == warehouse))
+                .ToListAsync();
+
+            return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
+        }
+
+        public async Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(string warehouse)
+        {
+            var today = DateTime.Today;
+            var startOfPreviousWeek = today.AddDays(-(int)today.DayOfWeek - 6);
+            var endOfPreviousWeek = startOfPreviousWeek.AddDays(6);
+
+            var stockChanges = await _context.StockChanges
+                .Include(sc => sc.Product)
+                .Where(sc => sc.Product.Stocks.Any(s => s.Warehouse.Name == warehouse))
+                .Where(sc => sc.Quantity < 0)
+                .Where(sc => sc.ChangeDate >= startOfPreviousWeek && sc.ChangeDate < endOfPreviousWeek.AddDays(1))
                 .ToListAsync();
 
             return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
