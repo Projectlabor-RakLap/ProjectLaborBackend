@@ -78,12 +78,12 @@ namespace ProjectLaborBackend.Services
 
         public async Task<List<StockGetDTO>> GetAllStocksAsync()
         {
-            return _mapper.Map<List<StockGetDTO>>(await _context.Stocks.ToListAsync());
+            return _mapper.Map<List<StockGetDTO>>(await _context.Stocks.Include(p => p.Product).Include(w => w.Warehouse).ToListAsync());
         }
 
         public async Task<StockGetDTO?> GetStockByIdAsync(int id)
         {
-            Stock stock = await _context.Stocks.FindAsync(id);
+            Stock? stock = await _context.Stocks.Include(p => p.Product).Include(w => w.Warehouse).FirstOrDefaultAsync(i => i.Id == id);
             if (stock == null)
             {
                 throw new KeyNotFoundException("Stock not found!");

@@ -27,7 +27,7 @@ namespace ProjectLaborBackend.Services
         }
         public async Task<StockChangeGetDTO> GetStockChangeByIdAsync(int id)
         {
-            StockChange? stockChange = await _context.StockChanges.FirstOrDefaultAsync(s => s.Id == id);
+            StockChange? stockChange = await _context.StockChanges.Include(p => p.Product).FirstOrDefaultAsync(s => s.Id == id);
             if (stockChange == null)
                 throw new KeyNotFoundException($"StockChange with id: {id} is not found");
 
@@ -36,7 +36,7 @@ namespace ProjectLaborBackend.Services
 
         public async Task<List<StockChangeGetDTO>> GetAllStockChangeAsync()
         {
-            var stockChanges = await _context.StockChanges.ToListAsync();
+            var stockChanges = await _context.StockChanges.Include(p => p.Product).ToListAsync();
             return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
         }
         

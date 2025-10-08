@@ -1,4 +1,7 @@
-﻿namespace ProjectLaborBackend.Dtos.Stock
+﻿using ProjectLaborBackend.Dtos.Product;
+using ProjectLaborBackend.Dtos.Warehouse;
+
+namespace ProjectLaborBackend.Dtos.Stock
 {
     public class StockGetDTO
     {
@@ -9,7 +12,7 @@
         public int StoreCapacity { get; set; }
         public double Price { get; set; }
         public string Currency { get; set; }
-        public int ProductId { get; set; }
-        public int WarehouseId { get; set; }
+        public ProductGetDTO Product { get; set; }
+        public WarehouseGetDTO Warehouse { get; set; }
     }
 }
