@@ -16,6 +16,7 @@ namespace ProjectLaborBackend.Services
         Task DeleteProductAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
         Task<List<ProductGetDTO>> GetAllProductsByWarehouseAsync(string warehouse);
+        Task<ProductGetDTO?> GetProductByEANAsync(string ean);
     }
 
     public class ProductService : IProductService
@@ -200,6 +201,17 @@ namespace ProjectLaborBackend.Services
         .ToListAsync();
 
             return _mapper.Map<List<ProductGetDTO>>(products);
+        }
+
+        public async Task<ProductGetDTO?> GetProductByEANAsync(string ean)
+        {
+            Product? product = await _context.Products.Where(x => x.EAN == ean).FirstOrDefaultAsync();
+            if (product == null)
+            {
+                throw new KeyNotFoundException("Product not found!");
+            }
+
+            return _mapper.Map<ProductGetDTO>(product);
         }
     }
 }

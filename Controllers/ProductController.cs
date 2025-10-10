@@ -105,5 +105,18 @@ namespace ProjectLaborBackend.Controllers
         {
             return await _productService.GetAllProductsByWarehouseAsync(warehouse);
         }
+
+        [HttpGet("ean/{ean}")]
+        public async Task<ActionResult<ProductGetDTO>> GetProductByEAN(string ean)
+        {
+            try
+            {
+                return await _productService.GetProductByEANAsync(ean);
+            }
+            catch (KeyNotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
     }
 }
