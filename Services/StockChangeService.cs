@@ -15,7 +15,7 @@ namespace ProjectLaborBackend.Services
         void InsertOrUpdate(List<List<string>> data);
         Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize);
         Task<List<StockChangeGetDTO>> GetStockChangesByProductAsync(int productId, int warehouseId);
-        Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(string warehouse);
+        Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(int warehouse);
     }
     public class StockChangeService : IStockChangeService
     {
@@ -206,7 +206,7 @@ namespace ProjectLaborBackend.Services
             return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
         }
 
-        public async Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(string warehouse)
+        public async Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(int warehouse)
         {
             var today = DateTime.Today;
             var startOfPreviousWeek = today.AddDays(-(int)today.DayOfWeek - 6);
@@ -214,7 +214,7 @@ namespace ProjectLaborBackend.Services
 
             var stockChanges = await _context.StockChanges
                 .Include(sc => sc.Product)
-                .Where(sc => sc.Product.Stocks.Any(s => s.Warehouse.Name == warehouse))
+                .Where(sc => sc.Product.Stocks.Any(s => s.Warehouse.Id == warehouse))
                 .Where(sc => sc.Quantity < 0)
                 .Where(sc => sc.ChangeDate >= startOfPreviousWeek && sc.ChangeDate < endOfPreviousWeek.AddDays(1))
                 .ToListAsync();
