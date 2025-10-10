@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using ProjectLaborBackend.Dtos.StockChange;
 using ProjectLaborBackend.Entities;
@@ -9,6 +10,7 @@ namespace ProjectLaborBackend.Services
     {
         Task<List<StockChangeGetDTO>> GetAllStockChangeAsync();
         Task<StockChangeGetDTO> GetStockChangeByIdAsync(int id);
+        Task<List<StockChangeGetDTO>> GetStockChangeByWarehouseAsync(int warehouseId);
         Task CreateStockChangeAsync(StockChangeCreateDTO stockChangeDto);
         Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto);
         Task DeleteStockChangeAsync(int id);
@@ -207,6 +209,16 @@ namespace ProjectLaborBackend.Services
             double average = totalSaleChanges / windowSize;
 
             return average;
+        }
+
+        public async Task<List<StockChangeGetDTO>> GetStockChangeByWarehouseAsync(int warehouseId)
+        {
+            var stockChanges = await _context.StockChanges
+                .Include(p => p.Product)
+                .Where(sc => _context.Stocks.Any(s => s.ProductId == sc.ProductId && s.WarehouseId == warehouseId))
+                .ToListAsync();
+
+            return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
         }
     }
 }

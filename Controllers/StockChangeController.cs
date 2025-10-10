@@ -18,9 +18,15 @@ namespace ProjectLaborBackend.Controllers
 
         // GET: api/StockChanges
         [HttpGet]
-        public async Task<ActionResult<List<StockChangeGetDTO>>> GetStockAllChanges()
+        public async Task<ActionResult<List<StockChangeGetDTO>>> GetAllStockChanges()
         {
            return await _service.GetAllStockChangeAsync();
+        }
+
+        [HttpGet("get-change-by-warehouse/{warehouseId}")]
+        public async Task<ActionResult<List<StockChangeGetDTO>>> GetStockChangesByWarehouse(int warehouseId)
+        {
+            return await _service.GetStockChangeByWarehouseAsync(warehouseId);
         }
 
         // GET: api/StockChanges/5
