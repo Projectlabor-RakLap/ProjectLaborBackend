@@ -14,6 +14,7 @@ namespace ProjectLaborBackend.Services
         Task UpdateStockAsync(int id, StockUpdateDto dto);
         Task DeleteStockAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
+        Task<StockGetDTO?> GetStockByProductAsync(int productId);
         Task UpdateStockAfterStockChange(int stockId, int warehouseId, int quantity);
     }
 
@@ -320,6 +321,17 @@ namespace ProjectLaborBackend.Services
             {
                 throw new Exception(ex.Message + "\n" + ex.InnerException.Message);
             }
+        }
+        
+        public async Task<StockGetDTO?> GetStockByProductAsync(int productId)
+        {
+            Stock? stock = await _context.Stocks.Include("Product").Where(x => x.Product.Id == productId).FirstOrDefaultAsync();
+            if (stock == null)
+            {
+                throw new KeyNotFoundException("Stock not found!");
+            }
+
+            return _mapper.Map<StockGetDTO>(stock);
         }
 
         public async Task<List<StockGetWithProductDTO>> GetStocksByWarehouseAsync(int warehouseId)

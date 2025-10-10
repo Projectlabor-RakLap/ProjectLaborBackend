@@ -99,5 +99,24 @@ namespace ProjectLaborBackend.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("warehouse/{warehouse}")]
+        public async Task<List<ProductGetDTO>> GetProductsByWarehouse(string warehouse)
+        {
+            return await _productService.GetAllProductsByWarehouseAsync(warehouse);
+        }
+
+        [HttpGet("ean/{ean}")]
+        public async Task<ActionResult<ProductGetDTO>> GetProductByEAN(string ean)
+        {
+            try
+            {
+                return await _productService.GetProductByEANAsync(ean);
+            }
+            catch (KeyNotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
     }
 }
