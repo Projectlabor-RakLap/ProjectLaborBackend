@@ -101,9 +101,9 @@ namespace ProjectLaborBackend.Controllers
         }
 
         [HttpGet("warehouse/{warehouse}")]
-        public async Task<List<ProductGetDTO>> GetProductsByWarehouse(string warehouse)
+        public async Task<List<ProductGetDTO>> GetProductsByWarehouse(int warehouseId)
         {
-            return await _productService.GetAllProductsByWarehouseAsync(warehouse);
+            return await _productService.GetAllProductsByWarehouseAsync(warehouseId);
         }
 
         [HttpGet("ean/{ean}")]

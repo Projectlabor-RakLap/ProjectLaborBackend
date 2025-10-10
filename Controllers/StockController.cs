@@ -97,7 +97,7 @@ namespace ProjectLaborBackend.Controllers
         }
 
         [HttpGet("product/{product}")]
-        public async Task<ActionResult<StockGetDTO?>> GetStockByProductName(int product)
+        public async Task<ActionResult<StockGetDTO?>> GetStockByProduct(int product)
         {
             try
             {
