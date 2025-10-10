@@ -189,22 +189,22 @@ namespace ProjectLaborBackend.Services
             }
 
             var stockChanges = await _context.StockChanges
-                .Where(sc => sc.ProductId == productId && sc.Quantity < 0)
+                .Where(sc => sc.ProductId == productId && sc.Quantity < 0 &&
+                     _context.Stocks.Any(s =>
+                         s.ProductId == productId &&
+                         s.WarehouseId == warehouseId))
                 .OrderByDescending(sc => sc.ChangeDate)
                 .Take(windowSize)
                 .ToListAsync();
 
             if (stockChanges.Count < windowSize)
             {
-                throw new Exception($"Not enough stock changes to calculate moving average for product with id: {productId}");
+                throw new Exception($"Not enough stock changes to calculate moving average for the last ({windowSize}) changes for given product!");
             }
 
             double totalSaleChanges = Math.Abs(stockChanges.Sum(sc => sc.Quantity));
-            double totalStockAcrossWarehouses = (await _context.Stocks
-                .Where(s => s.ProductId == productId)
-                .SumAsync(s => s.StockInWarehouse));
-
-            double average = (totalSaleChanges / windowSize) * (stock.StockInWarehouse / (double)totalStockAcrossWarehouses);
+            
+            double average = totalSaleChanges / windowSize;
 
             return average;
         }
