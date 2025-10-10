@@ -25,6 +25,12 @@ namespace ProjectLaborBackend.Controllers
             return await _stockService.GetAllStocksAsync();
         }
 
+        [HttpGet("get-stock-by-warehouse/{warehouseId}")]
+        public async Task<List<StockGetWithProductDTO>> GetStocksByWarehouse(int warehouseId)
+        {
+            return await _stockService.GetStocksByWarehouseAsync(warehouseId);
+        }
+
         // GET api/<StockController>/5
         [HttpGet("{id}")]
         public async Task<ActionResult<StockGetDTO>> GetStockById(int id)
@@ -94,6 +100,19 @@ namespace ProjectLaborBackend.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("product/{productId}")]
+        public async Task<ActionResult<StockGetDTO?>> GetStockByProductName(int productId)
+        {
+            try
+            {
+                return await _stockService.GetStockByProductAsync(productId);
+            }
+            catch (KeyNotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
         }
     }
 }

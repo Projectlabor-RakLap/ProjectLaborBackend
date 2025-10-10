@@ -18,9 +18,15 @@ namespace ProjectLaborBackend.Controllers
 
         // GET: api/StockChanges
         [HttpGet]
-        public async Task<ActionResult<List<StockChangeGetDTO>>> GetStockAllChanges()
+        public async Task<ActionResult<List<StockChangeGetDTO>>> GetAllStockChanges()
         {
            return await _service.GetAllStockChangeAsync();
+        }
+
+        [HttpGet("get-change-by-warehouse/{warehouseId}")]
+        public async Task<ActionResult<List<StockChangeGetDTO>>> GetStockChangesByWarehouse(int warehouseId)
+        {
+            return await _service.GetStockChangeByWarehouseAsync(warehouseId);
         }
 
         // GET: api/StockChanges/5
@@ -41,12 +47,12 @@ namespace ProjectLaborBackend.Controllers
             }
         }
 
-        [HttpGet("calculate-moving-average/{window}")]
-        public async Task<ActionResult<double>> CalculateMovingAverage(int productId, int window)
+        [HttpGet("calculate-moving-average/{productId}")]
+        public async Task<ActionResult<double>> CalculateMovingAverage(int productId, [FromQuery(Name = "warehouseId")] int warehouseId, [FromQuery(Name = "window")] int window)
         {
             try
             {
-                double movingAverage = await _service.CalculateMovingAveragePriceAsync(productId, window);
+                double movingAverage = await _service.CalculateMovingAverageQuantityAsync(productId, warehouseId , window);
                 return Ok($"Moving average for a window size of {window}: " + movingAverage);
             }
             catch (ArgumentException e)
@@ -127,6 +133,18 @@ namespace ProjectLaborBackend.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("warehouse-product/{productId}-{warehouseId}")]
+        public async Task<List<StockChangeGetDTO>> GetAllStockchangeByWarehouseProduct(int productId, int warehouseId)
+        {
+            return await _service.GetStockChangesByProductAsync(productId, warehouseId);
+        }
+
+        [HttpGet("previous-week/{warehouse}")]
+        public async Task<List<StockChangeGetDTO>> GetPreviousWeekStockChange(string warehouse)
+        {
+            return await _service.GetPreviousWeekSalesAsync(warehouse);
         }
     }
 }

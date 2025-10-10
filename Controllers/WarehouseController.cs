@@ -2,6 +2,7 @@
 using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Dtos.Warehouse;
 using ProjectLaborBackend.Services;
+using System.Threading.Tasks;
 
 namespace ProjectLaborBackend.Controllers
 {
@@ -10,7 +11,7 @@ namespace ProjectLaborBackend.Controllers
     public class WarehouseController : ControllerBase
     {
         private IWarehouseService _warehouseService;
-
+        
         public WarehouseController(IWarehouseService warehouseService)
         {
             _warehouseService = warehouseService;

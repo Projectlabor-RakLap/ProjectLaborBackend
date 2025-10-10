@@ -14,6 +14,16 @@ namespace ProjectLaborBackend.Entities
         public DbSet<Product> Products { get; set; }
         public DbSet<StockChange> StockChanges { get; set; }
 
+        public enum Tables
+        {
+            Products,
+            StockChanges,
+            Stocks,
+            Users,
+            UserWarehouse,
+            Warehouses
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             DotNetEnv.Env.Load();
@@ -70,6 +80,7 @@ namespace ProjectLaborBackend.Entities
         [Required]
         public string PasswordHash { get; set; }
         public Role Role { get; set; }
+        public bool IsVerified { get; set; }
         public ICollection<Warehouse> Warehouses { get; set; }
     }
 
@@ -116,9 +127,12 @@ namespace ProjectLaborBackend.Entities
         public int WarehouseCapacity { get; set; }
         [Required]
         public int StoreCapacity { get; set; }
-
         [Required]
         public double Price { get; set; }
+        [Required]
+        public double TransportCost { get; set; }
+        [Required]
+        public double StorageCost { get; set; }
         [Required]
         [StringLength(50)]
         public string Currency { get; set; }

@@ -18,10 +18,10 @@ namespace ProjectLaborBackend.Services
         Task<UserGetDTO> GetUserByIdAsync(int id);
         Task<UserGetDTO> RegisterAsync(UserRegisterDTO UserDTO);
         Task<string> LoginAsync(UserLoginDTO UserDTO);
-        Task<UserGetDTO> UpdateProfileAsync(int userId, UserPutDTO UserDTO);
+        Task<UserGetDTO> UpdateProfileAsync(int userId, UserPatchDTO UserDTO);
         Task DeleteUser(int id);
         Task<UserGetDTO> ForgotUpdateUserPasswordAsync(ForgotUserPutPasswordDTO UserDTO);
-        Task<UserGetDTO> UpdateUserPasswordAsync(int id, UserPutPasswordDTO UserDTO);
+        Task<UserGetDTO> UpdateUserPasswordAsync(UserPutPasswordDTO UserDTO);
         Task AssignUserWarehouseAsync(UserAssignWarehouseDTO UserDTO);
         Task DeleteUserFromWarehouseAsync(UserAssignWarehouseDTO UserDTO);
 
@@ -69,6 +69,7 @@ namespace ProjectLaborBackend.Services
 
             var user = mapper.Map<User>(UserDTO);
             user.PasswordHash = Argon2.Hash(UserDTO.Password);
+            user.IsVerified = false;
 
             await context.Users.AddAsync(user);
             await context.SaveChangesAsync();
@@ -96,7 +97,7 @@ namespace ProjectLaborBackend.Services
             return ("Logged In");
         }
 
-        public async Task<UserGetDTO> UpdateProfileAsync(int userId, UserPutDTO UserUpdateDTO)
+        public async Task<UserGetDTO> UpdateProfileAsync(int userId, UserPatchDTO UserUpdateDTO)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
@@ -104,7 +105,7 @@ namespace ProjectLaborBackend.Services
                 throw new KeyNotFoundException("User not found.");
             }
 
-            if (user.Email != UserUpdateDTO.Email && await context.Users.AnyAsync(u => u.Email == UserUpdateDTO.Email))
+            if (UserUpdateDTO.Email != null && user.Email != UserUpdateDTO.Email && await context.Users.AnyAsync(u => u.Email == UserUpdateDTO.Email))
             {
                 throw new ArgumentException("There is already another User with this email address");
             }
@@ -115,6 +116,10 @@ namespace ProjectLaborBackend.Services
             }
 
             mapper.Map(UserUpdateDTO, user);
+            //if (UserUpdateDTO.Email != null)
+            //{
+            //    user.Email = UserUpdateDTO.Email;
+            //}
 
             try
             {
@@ -123,7 +128,7 @@ namespace ProjectLaborBackend.Services
             }
             catch (Exception ex) 
             {
-                throw new Exception(ex.Message);
+                throw new Exception(ex.Message + "\n" + ex.InnerException.Message);
             }
 
             return mapper.Map<UserGetDTO>(user);
@@ -156,16 +161,16 @@ namespace ProjectLaborBackend.Services
             return mapper.Map<UserGetDTO>(user);
         }
 
-        public async Task<UserGetDTO> UpdateUserPasswordAsync(int id, UserPutPasswordDTO UserDTO)
+        public async Task<UserGetDTO> UpdateUserPasswordAsync(UserPutPasswordDTO UserDTO)
         {
-            var user = await context.Users.FindAsync(id);
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == UserDTO.Email);
             if (user == null)
             {
                 throw new KeyNotFoundException("This user does not exists.");
             }
             if (!(Argon2.Verify(user.PasswordHash, UserDTO.Password)))
             {
-                throw new Exception("Passwords does not match");
+                throw new Exception("Passwords do not match");
             }
             user.PasswordHash = Argon2.Hash(UserDTO.NewPassword);
             await context.SaveChangesAsync();
