@@ -30,11 +30,12 @@ namespace ProjectLaborBackend.Services
     {
         private readonly AppDbContext context;
         private readonly IMapper mapper;
-
-        public UserService(AppDbContext _context, IMapper _mapper)
+        private readonly IEmailService _emailService;
+        public UserService(AppDbContext _context, IMapper _mapper, IEmailService emailService)
         {
             context = _context;
             mapper = _mapper;
+            _emailService = emailService;
         }
 
         public async Task<List<UserGetDTO>> GetUsersAsync()
@@ -71,6 +72,9 @@ namespace ProjectLaborBackend.Services
 
             await context.Users.AddAsync(user);
             await context.SaveChangesAsync();
+
+            string templatePath = $"{Directory.GetCurrentDirectory()}/Email/Templates/Welcome.cshtml";
+            await _emailService.SendEmail(user.Email, "Üdvözlünk a RakLapnál!", templatePath);
 
             return mapper.Map<UserGetDTO>(user);
         }

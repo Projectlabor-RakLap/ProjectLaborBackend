@@ -31,22 +31,7 @@ namespace ProjectLaborBackend.Controllers
                 return BadRequest(e.Message);
             }
         }
-
-        [HttpPost("send-confirm")]
-        public async Task<IActionResult> SendConfirmEmail([FromBody] UserEmailDto emailDto)
-        {
-            try
-            {
-                string templatePath = $"{Directory.GetCurrentDirectory()}/Email/Templates/Welcome.cshtml";
-                await _emailService.SendEmail(emailDto.Email, "Erősítsd meg email címed", templatePath);
-                return Ok("Email confirm sent successfully!");
-            }
-            catch (KeyNotFoundException e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
+        
         [HttpPost("send-password-reset")]
         public async Task<IActionResult> SendPasswordResetEmail([FromBody] UserEmailDto emailDto)
         {
