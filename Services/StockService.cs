@@ -13,7 +13,7 @@ namespace ProjectLaborBackend.Services
         Task UpdateStockAsync(int id, StockUpdateDto dto);
         Task DeleteStockAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
-        Task<StockGetDTO?> GetStockByProductNameAsync(string product);
+        Task<StockGetDTO?> GetStockByProductAsync(int productId);
     }
 
     public class StockService : IStockService
@@ -296,9 +296,9 @@ namespace ProjectLaborBackend.Services
             }
         }
 
-        public async Task<StockGetDTO?> GetStockByProductNameAsync(string product)
+        public async Task<StockGetDTO?> GetStockByProductAsync(int productId)
         {
-            Stock? stock = await _context.Stocks.Include("Product").Where(x => x.Product.Name == product).FirstOrDefaultAsync();
+            Stock? stock = await _context.Stocks.Include("Product").Where(x => x.Product.Id == productId).FirstOrDefaultAsync();
             if (stock == null)
             {
                 throw new KeyNotFoundException("Stock not found!");
