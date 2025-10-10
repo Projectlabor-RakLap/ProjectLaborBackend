@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using ProjectLaborBackend.Dtos.StockChange;
 using ProjectLaborBackend.Entities;
@@ -9,27 +10,30 @@ namespace ProjectLaborBackend.Services
     {
         Task<List<StockChangeGetDTO>> GetAllStockChangeAsync();
         Task<StockChangeGetDTO> GetStockChangeByIdAsync(int id);
+        Task<List<StockChangeGetDTO>> GetStockChangeByWarehouseAsync(int warehouseId);
         Task CreateStockChangeAsync(StockChangeCreateDTO stockChangeDto);
         Task PatchStockChangesAsync(int id, StockChangeUpdateDTO stockChangeDto);
         Task DeleteStockChangeAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
-        Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize);
         Task<List<StockChangeGetDTO>> GetStockChangesByProductAsync(int productId, int warehouseId);
         Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(int warehouse);
+        Task<double> CalculateMovingAverageQuantityAsync(int productId, int warehouseId, int windowSize);
     }
     public class StockChangeService : IStockChangeService
     {
         private readonly AppDbContext _context;
         private IMapper _mapper;
+        private readonly IStockService _stockService;
 
-        public StockChangeService(AppDbContext context, IMapper mapper)
+        public StockChangeService(AppDbContext context, IMapper mapper, IStockService stockService)
         {
             _context = context;
             _mapper = mapper;
+            _stockService = stockService;
         }
         public async Task<StockChangeGetDTO> GetStockChangeByIdAsync(int id)
         {
-            StockChange? stockChange = await _context.StockChanges.FirstOrDefaultAsync(s => s.Id == id);
+            StockChange? stockChange = await _context.StockChanges.Include(p => p.Product).FirstOrDefaultAsync(s => s.Id == id);
             if (stockChange == null)
                 throw new KeyNotFoundException($"StockChange with id: {id} is not found");
 
@@ -38,7 +42,7 @@ namespace ProjectLaborBackend.Services
 
         public async Task<List<StockChangeGetDTO>> GetAllStockChangeAsync()
         {
-            var stockChanges = await _context.StockChanges.ToListAsync();
+            var stockChanges = await _context.StockChanges.Include(p => p.Product).ToListAsync();
             return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
         }
 
@@ -52,6 +56,15 @@ namespace ProjectLaborBackend.Services
             if (stockChangeDto.Quantity == 0)
             {
                 throw new ArgumentException("Quantity cannot be zero!");
+            }
+
+            try
+            {
+                await _stockService.UpdateStockAfterStockChange(stockChangeDto.ProductId, stockChangeDto.WarehouseId, stockChangeDto.Quantity);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
             }
 
             StockChange stockChange = _mapper.Map<StockChange>(stockChangeDto);
@@ -162,37 +175,52 @@ namespace ProjectLaborBackend.Services
                 throw;
             }
         }
-        public async Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize)
+
+        public async Task<double> CalculateMovingAverageQuantityAsync(int productId, int warehouseId, int windowSize)
         {
-            if (!_context.Products.Any(p => p.Id == productId))
+            if (windowSize <= 0)
             {
-                throw new ArgumentException($"There is no product with id: {productId}");
+                throw new ArgumentException("Window size must be positive and not zero!");
             }
 
-            var changes = await _context.StockChanges
-                .Where(sc => sc.ProductId == productId && sc.Quantity < 0)
+            var stock = await _context.Stocks
+                .Where(s => s.ProductId == productId && s.WarehouseId == warehouseId)
+                .FirstOrDefaultAsync();
+
+            if (stock == null)
+            {
+                throw new ArgumentException($"Product with id {productId} is not stocked in warehouse {warehouseId}!");
+            }
+
+            var stockChanges = await _context.StockChanges
+                .Where(sc => sc.ProductId == productId && sc.Quantity < 0 &&
+                     _context.Stocks.Any(s =>
+                         s.ProductId == productId &&
+                         s.WarehouseId == warehouseId))
                 .OrderByDescending(sc => sc.ChangeDate)
                 .Take(windowSize)
                 .ToListAsync();
 
-            if (windowSize <= 0)
+            if (stockChanges.Count < windowSize)
             {
-                throw new ArgumentException($"Window must be positive and not 0!");
+                throw new Exception($"Not enough stock changes to calculate moving average for the last ({windowSize}) changes for given product!");
             }
 
-            if (changes.Count < windowSize)
-            {
-                throw new Exception($"Not enough stock changes to calculate moving average for product with id: {productId}");
-            }
-
-            double average = Math.Abs(await _context.StockChanges
-                .Where(sc => sc.ProductId == productId && sc.Quantity < 0)
-                .OrderByDescending(sc => sc.ChangeDate)
-                .Take(windowSize)
-                .AverageAsync(sc => sc.Quantity));
-
+            double totalSaleChanges = Math.Abs(stockChanges.Sum(sc => sc.Quantity));
+            
+            double average = totalSaleChanges / windowSize;
 
             return average;
+        }
+
+        public async Task<List<StockChangeGetDTO>> GetStockChangeByWarehouseAsync(int warehouseId)
+        {
+            var stockChanges = await _context.StockChanges
+                .Include(p => p.Product)
+                .Where(sc => _context.Stocks.Any(s => s.ProductId == sc.ProductId && s.WarehouseId == warehouseId))
+                .ToListAsync();
+
+            return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
         }
 
         public async Task<List<StockChangeGetDTO>> GetStockChangesByProductAsync(int productId, int warehouseId)

@@ -1,9 +1,10 @@
-using Microsoft.EntityFrameworkCore;
-using ProjectLaborBackend.Controllers;
+using ProjectLaborBackend.Email;
 using ProjectLaborBackend.Entities;
 using ProjectLaborBackend.Profiles;
 using ProjectLaborBackend.Services;
-using ProjectLaborBackend.Entities;
+using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using ProjectLaborBackend.Controllers;
 
 namespace ProjectLaborBackend
 {
@@ -22,10 +23,13 @@ namespace ProjectLaborBackend
             builder.Services.AddScoped<IStockService, StockService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IStockChangeService, StockChangeService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
+            builder.Services.AddFluentEmail(builder.Configuration);
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
-            
+
             //Automapper maps
             builder.Services.AddAutoMapper(cfg => { }, typeof(ProductProfile));
             builder.Services.AddAutoMapper(cfg => { }, typeof(WarehouseProfile));
@@ -36,18 +40,28 @@ namespace ProjectLaborBackend
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowLocalhost", policy =>
+                options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.WithOrigins(
-                            "http://localhost:3000",
-                            "https://localhost:3000")
+                    policy.AllowAnyOrigin()
                           .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
+                          .AllowAnyMethod();
                 });
             });
 
             builder.Services.AddAutoMapper(cfg => { }, typeof(UserProfile));
+
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                // HTTP minden IP-re (pl. 10.100.0.66, localhost)
+                options.ListenAnyIP(5116);
+
+                // HTTPS minden IP-re
+                options.ListenAnyIP(7116, listenOptions =>
+                {
+                    listenOptions.UseHttps(); // Self-signed cert
+                });
+            });
+
 
             var app = builder.Build();
 
@@ -68,10 +82,13 @@ namespace ProjectLaborBackend
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseCors("AllowLocalhost");
+            app.UseCors(builder =>
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader());
 
             app.UseAuthorization();
-            
+
 
             app.MapControllers();
 
