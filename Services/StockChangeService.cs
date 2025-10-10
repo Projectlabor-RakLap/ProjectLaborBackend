@@ -14,7 +14,7 @@ namespace ProjectLaborBackend.Services
         Task DeleteStockChangeAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
         Task<double> CalculateMovingAveragePriceAsync(int productId, int windowSize);
-        Task<List<StockChangeGetDTO>> GetAllStockChangeByWarehouseAsync(string product, string warehouse);
+        Task<List<StockChangeGetDTO>> GetStockChangesByProductAsync(int productId, int warehouseId);
         Task<List<StockChangeGetDTO>> GetPreviousWeekSalesAsync(string warehouse);
     }
     public class StockChangeService : IStockChangeService
@@ -195,12 +195,12 @@ namespace ProjectLaborBackend.Services
             return average;
         }
 
-        public async Task<List<StockChangeGetDTO>> GetAllStockChangeByWarehouseAsync(string product, string warehouse)
+        public async Task<List<StockChangeGetDTO>> GetStockChangesByProductAsync(int productId, int warehouseId)
         {
             var stockChanges = await _context.StockChanges
                 .Include(sc => sc.Product)
-                .Where(sc => sc.Product.Name == product)
-                .Where(sc => sc.Product.Stocks.Any(s => s.Warehouse.Name == warehouse))
+                .Where(sc => sc.Product.Id == productId)
+                .Where(sc => sc.Product.Stocks.Any(s => s.Warehouse.Id == warehouseId))
                 .ToListAsync();
 
             return _mapper.Map<List<StockChangeGetDTO>>(stockChanges);
