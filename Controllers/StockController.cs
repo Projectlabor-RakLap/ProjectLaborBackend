@@ -102,12 +102,12 @@ namespace ProjectLaborBackend.Controllers
             return NoContent();
         }
 
-        [HttpGet("product/{productId}")]
-        public async Task<ActionResult<StockGetDTO?>> GetStockByProductName(int productId)
+        [HttpGet("product/{product}")]
+        public async Task<ActionResult<StockGetDTO?>> GetStockByProduct(int product)
         {
             try
             {
-                return await _stockService.GetStockByProductAsync(productId);
+                return await _stockService.GetStockByProductAsync(product);
             }
             catch (KeyNotFoundException e)
             {

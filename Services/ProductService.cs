@@ -15,7 +15,7 @@ namespace ProjectLaborBackend.Services
         Task UpdateProductAsync(int id, ProductUpdateDTO dto);
         Task DeleteProductAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
-        Task<List<ProductGetDTO>> GetAllProductsByWarehouseAsync(string warehouse);
+        Task<List<ProductGetDTO>> GetAllProductsByWarehouseAsync(int warehouseId);
         Task<ProductGetDTO?> GetProductByEANAsync(string ean);
     }
 
@@ -192,13 +192,13 @@ namespace ProjectLaborBackend.Services
             }
         }
 
-        public async Task<List<ProductGetDTO>> GetAllProductsByWarehouseAsync(string warehouse)
+        public async Task<List<ProductGetDTO>> GetAllProductsByWarehouseAsync(int warehouseId)
         {
             var products = await _context.Products
-        .Where(p => p.Stocks.Any(s => s.Warehouse.Name == warehouse))
-        .Include(p => p.Stocks)
-        .ThenInclude(s => s.Warehouse)
-        .ToListAsync();
+                .Where(p => p.Stocks.Any(s => s.Warehouse.Id == warehouseId))
+                .Include(p => p.Stocks)
+                .ThenInclude(s => s.Warehouse)
+                .ToListAsync();
 
             return _mapper.Map<List<ProductGetDTO>>(products);
         }
