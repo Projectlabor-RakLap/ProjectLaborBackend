@@ -9,6 +9,7 @@ namespace ProjectLaborBackend.Profiles
         public StockProfile()
         {
             CreateMap<Stock, StockGetDTO>();
+            CreateMap<Stock, StockGetWithProductDTO>();
             CreateMap<StockCreateDTO, Stock>();
             CreateMap<StockUpdateDto, Stock>()
                 .ForMember(x => x.WarehouseId, opt => opt.Ignore())

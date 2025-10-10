@@ -8,6 +8,7 @@ namespace ProjectLaborBackend.Services
     public interface IStockService
     {
         Task<List<StockGetDTO>> GetAllStocksAsync();
+        Task<List<StockGetWithProductDTO>> GetStocksByWarehouseAsync(int warehouseId);
         Task<StockGetDTO?> GetStockByIdAsync(int id);
         Task CreateStockAsync(StockCreateDTO stock);
         Task UpdateStockAsync(int id, StockUpdateDto dto);
@@ -319,6 +320,16 @@ namespace ProjectLaborBackend.Services
             {
                 throw new Exception(ex.Message + "\n" + ex.InnerException.Message);
             }
+        }
+
+        public async Task<List<StockGetWithProductDTO>> GetStocksByWarehouseAsync(int warehouseId)
+        {
+            var stocks = await _context.Stocks
+                .Include(p => p.Product)
+                .Include(w => w.Warehouse)
+                .Where(s => s.WarehouseId == warehouseId)
+                .ToListAsync();
+            return _mapper.Map<List<StockGetWithProductDTO>>(stocks);
         }
     }
 }
