@@ -8,7 +8,8 @@ namespace ProjectLaborBackend.Profiles
     {
         public ProductProfile() 
         {
-            CreateMap<Product, ProductGetDTO>();        
+            CreateMap<Product, ProductGetDTO>();
+            CreateMap<Product, ProductGetNoPicDTO>();
             CreateMap<ProductCreateDTO, Product>();
             CreateMap<ProductUpdateDTO, Product>()
                 .ForAllMembers(o => o.Condition((src, dest, srcMember) => srcMember != null));

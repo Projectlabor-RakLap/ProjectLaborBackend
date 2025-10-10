@@ -67,12 +67,12 @@ namespace ProjectLaborBackend.Controllers
             catch (Exception e) { return BadRequest(e.Message); }
         }
 
-        [HttpPut("update-profile/{id}")]
-        public async Task<IActionResult> UpdateProfile(int userId, [FromBody] UserPutDTO userDto)
+        [HttpPatch("update-profile/{id}")]
+        public async Task<IActionResult> UpdateProfile(int id, [FromBody] UserPatchDTO userDto)
         {
             try
             {
-                var result = await userService.UpdateProfileAsync(userId, userDto);
+                var result = await userService.UpdateProfileAsync(id, userDto);
                 return Ok(result);
             }
             catch (KeyNotFoundException e) { return NotFound(e.Message); }
@@ -92,7 +92,7 @@ namespace ProjectLaborBackend.Controllers
             catch (Exception e) { return BadRequest(e.Message); }
         }
 
-        [HttpPut("update-password")]
+        [HttpPatch("reset-password")]
         [AllowAnonymous]
         public async Task<IActionResult> ForgotUpdateProfilePassword([FromBody] ForgotUserPutPasswordDTO userDto)
         {
@@ -105,19 +105,19 @@ namespace ProjectLaborBackend.Controllers
             catch (Exception e) { return BadRequest(e.Message); }
         }
 
-        [HttpPut("update-password/{id}")]
-        public async Task<IActionResult> UpdateProfilePassword(int userId, [FromBody] UserPutPasswordDTO userDto)
+        [HttpPatch("update-password")]
+        public async Task<IActionResult> UpdateProfilePassword([FromBody] UserPutPasswordDTO userDto)
         {
             try
             {
-                var result = await userService.UpdateUserPasswordAsync(userId, userDto);
+                var result = await userService.UpdateUserPasswordAsync(userDto);
                 return Ok(result);
             }
             catch (KeyNotFoundException e) { return NotFound(e.Message); }
             catch (Exception e) { return BadRequest(e.Message); }
         }
 
-        [HttpPut("assign-user-warehouse")]
+        [HttpPatch("assign-user-warehouse")]
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignWarehouseToUser([FromBody] UserAssignWarehouseDTO userDTO)
         {

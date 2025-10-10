@@ -8,12 +8,14 @@ namespace ProjectLaborBackend.Services
     public interface IStockService
     {
         Task<List<StockGetDTO>> GetAllStocksAsync();
+        Task<List<StockGetWithProductDTO>> GetStocksByWarehouseAsync(int warehouseId);
         Task<StockGetDTO?> GetStockByIdAsync(int id);
         Task CreateStockAsync(StockCreateDTO stock);
         Task UpdateStockAsync(int id, StockUpdateDto dto);
         Task DeleteStockAsync(int id);
         void InsertOrUpdate(List<List<string>> data);
         Task<StockGetDTO?> GetStockByProductAsync(int productId);
+        Task UpdateStockAfterStockChange(int stockId, int warehouseId, int quantity);
     }
 
     public class StockService : IStockService
@@ -79,12 +81,12 @@ namespace ProjectLaborBackend.Services
 
         public async Task<List<StockGetDTO>> GetAllStocksAsync()
         {
-            return _mapper.Map<List<StockGetDTO>>(await _context.Stocks.ToListAsync());
+            return _mapper.Map<List<StockGetDTO>>(await _context.Stocks.Include(p => p.Product).Include(w => w.Warehouse).ToListAsync());
         }
 
         public async Task<StockGetDTO?> GetStockByIdAsync(int id)
         {
-            Stock stock = await _context.Stocks.FindAsync(id);
+            Stock? stock = await _context.Stocks.Include(p => p.Product).Include(w => w.Warehouse).FirstOrDefaultAsync(i => i.Id == id);
             if (stock == null)
             {
                 throw new KeyNotFoundException("Stock not found!");
@@ -296,6 +298,31 @@ namespace ProjectLaborBackend.Services
             }
         }
 
+        public async Task UpdateStockAfterStockChange(int productId, int warehouseId, int quantity)
+        {
+            Stock stock = await _context.Stocks.FirstOrDefaultAsync(s => s.ProductId == productId && s.WarehouseId == warehouseId);
+            if (stock == null)
+            {
+                throw new KeyNotFoundException("Stock not found!");
+            }
+
+            if (stock.StockInWarehouse + quantity < 0)
+            {
+                throw new ArgumentOutOfRangeException("Stock in warehouse cannot be negative!");
+            }
+
+            stock.StockInWarehouse += quantity;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + "\n" + ex.InnerException.Message);
+            }
+        }
+        
         public async Task<StockGetDTO?> GetStockByProductAsync(int productId)
         {
             Stock? stock = await _context.Stocks.Include("Product").Where(x => x.Product.Id == productId).FirstOrDefaultAsync();
@@ -305,6 +332,16 @@ namespace ProjectLaborBackend.Services
             }
 
             return _mapper.Map<StockGetDTO>(stock);
+        }
+
+        public async Task<List<StockGetWithProductDTO>> GetStocksByWarehouseAsync(int warehouseId)
+        {
+            var stocks = await _context.Stocks
+                .Include(p => p.Product)
+                .Include(w => w.Warehouse)
+                .Where(s => s.WarehouseId == warehouseId)
+                .ToListAsync();
+            return _mapper.Map<List<StockGetWithProductDTO>>(stocks);
         }
     }
 }
