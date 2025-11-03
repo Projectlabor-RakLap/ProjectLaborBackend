@@ -58,7 +58,7 @@ namespace ProjectLaborBackend
                 // HTTPS minden IP-re
                 options.ListenAnyIP(7116, listenOptions =>
                 {
-                    listenOptions.UseHttps(); // Self-signed cert
+                    listenOptions.UseHttps();
                 });
             });
 
