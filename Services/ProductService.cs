@@ -97,12 +97,13 @@ namespace ProjectLaborBackend.Services
                 throw new KeyNotFoundException("Product not found!");
             }
 
-            if (dto.EAN.Length > 20)
+            if (dto.EAN != null && dto.EAN.Length > 20)
             {
                 throw new ArgumentException("EAN must be 20 characters or less!");
             }
 
-            if (await _context.Products.AnyAsync(p => p.EAN == dto.EAN))
+
+            if (await _context.Products.AnyAsync(p => p.EAN == dto.EAN && p.Id != id))
             {
                 throw new ArgumentException("Product with this EAN already exists!");
             }
